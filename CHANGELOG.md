@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## public-g61 (2026-10-10)
+
+- Public copy names house light G61: README (GitHub landing), Grove fire card, faeOS map. Kindling boots QEMU and iron. Linux ELF and `grant` stay later.
+
 ## pane-g61 (2026-10-10)
 
 - Iron G60 opened the pane then `kindling bunny` / `the spark went out`: rustc memset of the TUI buffers jumped through a discarded GOT at address 8. Gleam ELF keeps `.got` in the load segment; pane copies bytes by hand and names memset/memcpy/memmove itself. Glass bunny paints CR2 (`kindling: bunny 0x8`). ingle-leaf / ingle-leaf-cast / efi-grow fail if the pane smoors after open, and require `the pane is shut`. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.

@@ -16,6 +16,14 @@ Bowl of unused names: [lore/fae-names.md](lore/fae-names.md) (research dataset).
 
 ---
 
+## 2026-10-10 — Gleed — the fire is public
+
+- Did: README, Grove fire card, and the faeOS map name house light G61. GitHub About points at Grove `#fire`.
+- Proof: this tree, then push.
+- Git: pushed.
+- Next: iron pane on the IdeaPad; then a TUI that saves to `page`.
+- Do not: Linux ELF; open `grant`; wax KINDLOG; a new V.
+
 ## 2026-10-10 — Gleed — G61 pane stands
 
 - Did: Iron G60 `the pane is open` then `kindling bunny` / `the spark went out` / leaf still spoke. rustc memset of the TUI buffers jumped through a discarded GOT at address 8. Keep `.got` in the Gleam ELF load segment. Pane copies bytes by hand. Glass bunny paints CR2. Gates fail if the pane smoors after open; they wait for `the pane is shut`.

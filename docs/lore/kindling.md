@@ -1,6 +1,6 @@
 # Kindling — the kernel's fire-name
 
-**Kindling** is the proposed creature name of this kernel (repo still `fae-kernel`). Not Hearth (greeter). Not Cerne (older proposal, kept as firmware file names for now). Not Pixie.
+**Kindling** is the creature name of this kernel (repo still `fae-kernel`). Not Hearth (greeter). Not Cerne (older proposal, kept as firmware file names for now). Not Pixie. Struck. House light G15–G61 is on.
 
 You do not light a log. You light **kindling**. The tools that light it *are* the tools that reach `start()`.
 
