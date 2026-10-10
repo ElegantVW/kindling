@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## hall-g52 (2026-10-10)
+
+- Iron choose of `even` painted `the ink will not hold` / `kindling: gleam exit 1`. KINDLOG already held the seals; LBA 69 was `even`. `ink_hand` WRITE landed, the reread missed, and keeper treated `-EIO` as death. `hand` is a greeting: after enlist `save` or a matching choose, a miss there still returns 0. Iron enlist proof always `--wax` so the next boot is an empty hall. KINDLING `85C7-AA81` only.
+
 ## recast-g51 (2026-10-10)
 
 - Iron hall is lit (`even`). `q` already smoors (`exit` / `hlt`); the panel stays on. House call 15 `cast` paints `the fire is recast`, pulses the 8042 (`0xFE`), then PCI reset (`0xCF9`). `ingle` and `leaf` knock it on `r`. `make below` += ingle-cast, ingle-leaf-cast, efi-cast. Plant EFI only — KINDLOG stays held.

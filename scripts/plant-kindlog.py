@@ -3,8 +3,8 @@
 
 Does not shrink FAT. Slot 0 must already be the KINDLING ESP at LBA 2048.
 Slot 1 must be empty, or already this KINDLOG. Superblock is rewritten.
-A sealed book (name in `hand`) stays; gap entropy is waxed so the hall
-does not split. Does not touch EFI files.
+A sealed book stays unless `--wax`. Gap entropy is waxed so the hall
+does not split. Does not touch EFI files. Iron enlist proof uses `--wax`.
 """
 from __future__ import annotations
 
@@ -39,6 +39,11 @@ def slot(img: bytes, n: int) -> tuple[int, int, int]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dev", required=True, help="raw disk (e.g. /dev/sdb) or image")
+    ap.add_argument(
+        "--wax",
+        action="store_true",
+        help="wipe hands/twin/hand even if a sealed book is held",
+    )
     args = ap.parse_args()
     dev = args.dev
     if not os.path.exists(dev):
@@ -80,7 +85,7 @@ def main() -> int:
         mini[kindlog.KLOG_START * 512 : kindlog.KLOG_START * 512 + 512] = super_blob
         if len(data) == book_len:
             mini[book_off : book_off + book_len] = data
-        if not kindlog.held(bytes(mini)):
+        if args.wax or not kindlog.held(bytes(mini)):
             f.seek(book_off)
             f.write(bytes(book_len))
             waxed = True

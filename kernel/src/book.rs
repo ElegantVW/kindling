@@ -554,10 +554,8 @@ pub fn enlist(name_ptr: u64, word_ptr: u64, confirm_ptr: u64) -> u64 {
     if let Err(e) = save(&book) {
         return e;
     }
-    match ink_hand(&name) {
-        Ok(()) => 0,
-        Err(e) => e,
-    }
+    let _ = ink_hand(&name);
+    0
 }
 
 fn check_word(slot: &Slot, word: &[u8], vol: u32) -> bool {
@@ -589,10 +587,8 @@ pub fn choose(name_ptr: u64, word_ptr: u64) -> u64 {
         speak("the word fails\n");
         return err(EPERM);
     }
-    match ink_hand(&name) {
-        Ok(()) => 0,
-        Err(e) => e,
-    }
+    let _ = ink_hand(&name);
+    0
 }
 
 pub fn dismiss(name_ptr: u64, word_ptr: u64) -> u64 {
