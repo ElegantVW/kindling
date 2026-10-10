@@ -258,6 +258,11 @@ printf '%s\n' "$got" | grep -F -q "the rust is lit" || {
   echo "$got" | tail -12
   exit 1
 }
+printf '%s\n' "$got" | grep -F -q "the glass is ours" || {
+  echo "FAIL gleam-elf (no glass line)"
+  echo "$got" | tail -12
+  exit 1
+}
 printf '%s\n' "$got" | grep -F -q "kindling: gleam exit 0" || {
   echo "FAIL gleam-elf (no gleam exit 0)"
   echo "$got" | tail -12

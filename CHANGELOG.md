@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## flush-g56 (2026-10-10)
+
+- House call 7 `flush` is the glass a TUI owns. Empty presents (`0` if VGA/GOP live, `-ENODEV` if dark). A buffer paints the glass only; serial stays the transcript. `grant` stays `-EAGAIN`. rustc spark: `the rust is lit` / `the glass is ours` / `gleam exit 0`. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## gleam-g55 (2026-10-10)
 
 - Kindling loads a Gleam ELF64 `ET_EXEC` (our headers, house calls, not a Linux ABI). Raw nasm sparks stay 64 KiB and identity-mapped. The rustc spark lives at 1 GiB so it never sits on Kindling's cup at 4 MiB. Proof: `kindling: gleam ok` / `the rust is lit` / `gleam exit 0`. `make below` += gleam-elf. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only. `grant` / `flush` stay shut.

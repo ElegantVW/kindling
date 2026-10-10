@@ -199,7 +199,8 @@ pub fn dispatch(n: u64, a0: u64, a1: u64, a2: u64) -> u64 {
         CHOOSE => crate::book::choose(a0, a1),
         DISMISS => crate::book::dismiss(a0, a1),
         CAST => recast(),
-        GRANT | FLUSH => err(EAGAIN),
+        GRANT => err(EAGAIN),
+        FLUSH => crate::glass::flush(a0, a1),
         _ => err(ENOSYS),
     }
 }
@@ -528,6 +529,33 @@ pub fn self_test() {
     }
     if w != 3 {
         fail = 6;
+    }
+    // Glass present (VGA on this bowl). Grant stays shut.
+    let fl: u64;
+    unsafe {
+        asm!(
+            "mov rax, {n}",
+            "xor edi, edi",
+            "xor esi, esi",
+            "xor edx, edx",
+            "int 0xE0",
+            "mov {out}, rax",
+            n = const FLUSH,
+            out = out(reg) fl,
+            out("rcx") _,
+            out("r11") _,
+            options(nostack),
+        );
+    }
+    if fl != 0 {
+        fail = 15;
+    }
+    if dispatch(GRANT, 0, 0, 0) != err(EAGAIN) {
+        fail = 16;
+    }
+    let page = b"the glass is ours\n";
+    if dispatch(FLUSH, page.as_ptr() as u64, page.len() as u64, 0) != page.len() as u64 {
+        fail = 17;
     }
     // Timer alive? Latch PIT ch0 twice around a spin; a running counter
     // must differ. A dead PIT would hang sleep forever — fail here instead.

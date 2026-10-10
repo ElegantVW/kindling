@@ -157,7 +157,7 @@ gleam)
         --spark gleam=spark/gleam.elf >/dev/null
     run_case gleam kindling-gleam.img \
         "kindling: house ok" "kindling: gleam ok" \
-        "the rust is lit" "kindling: gleam exit 0"
+        "the rust is lit" "the glass is ours" "kindling: gleam exit 0"
     ;;
 ingle)
     nasm -f bin -o spark/ingle.bin spark/ingle.asm

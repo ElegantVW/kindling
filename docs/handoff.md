@@ -16,13 +16,21 @@ Bowl of unused names: [lore/fae-names.md](lore/fae-names.md) (research dataset).
 
 ---
 
+## 2026-10-10 — Gleed — G56 flush (the glass a TUI owns)
+
+- Did: House call 7 `flush`: empty presents, a buffer paints the glass only. `write` still serial + glass. `grant` stays `-EAGAIN`. rustc gleam spark knocks present + a glass line, then writes `the glass is ours` so the serial gate sees it.
+- Proof: `make below` gleam-elf greps `the rust is lit`, `the glass is ours`, `kindling: gleam exit 0`. House-test `int 0xE0` flush present is 0.
+- Git: this tree, local. No push.
+- Next: grow a leaf (FAT files that can change size), then a first tiny TUI.
+- Do not: Linux ELF; open `grant`; wax KINDLOG; a new V; push.
+
 ## 2026-10-10 — Gleed — G55 Gleam ELF (rustc spark on our gate)
 
 - Did: Spawn takes a Gleam ELF64 `ET_EXEC` as well as raw `nasm -f bin`. `place_spark_at` maps the spark's own VA onto a pool run; cup stays identity. Tiny `spark/gleam` rustc `no_std` hello writes `the rust is lit` then smoors. ingle/keeper stay 64 KiB raw. `grant`/`flush` stay shut.
 - Proof: `make below` gleam-elf greps `kindling: gleam ok`, `the rust is lit`, `kindling: gleam exit 0`. Raw spawn/splanc/ingle still green.
 - Git: this tree, local. No push.
 - Next: `flush` glass, then grow a leaf, then a first tiny TUI on the below stack.
-- Do not: Linux ELF; PIE/`ET_DYN`; open `grant`/`flush`; wax KINDLOG; a new V; push.
+- Do not: Linux ELF; PIE/`ET_DYN`; open `grant`; wax KINDLOG; a new V; push.
 
 ## 2026-10-05 — Gleed — EFI GetProtocol (live-iron hang, no gate change)
 

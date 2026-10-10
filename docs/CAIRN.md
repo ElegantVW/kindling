@@ -143,7 +143,7 @@ is the design working.
 - **first-leaf** — the first leaf, packed at cast time.
 - **wick** — the second spark: tells `second-leaf` from its own cup, then exits.
 - **ember** — the live coal (G30): kindles `wick`, writes `stayed`, exits with wick's last word. Packed on the spawn-test image. G31: kindles `splanc` when that spark is packed; spawn refuses, ember exits 1.
-- **gleam** — G55 rustc `no_std` spark. House `write` then `exit 0`. Packed on the gleam-test image. Proof line `the rust is lit`.
+- **gleam** — G55 rustc `no_std` spark. House `write`, then G56 `flush` (present + a glass-only line), then `exit 0`. Packed on the gleam-test image. Proof lines `the rust is lit` and `the glass is ours`.
 - **splanc** — a spark that does not catch (G31). Irish *splanc*. `ud2`; the house names the miss.
 - **second-leaf** — `the cup is its own`.
 - **ingle** — the greeter spark, the desktop (G34). Writes its name, kindles `keeper` when present, greets an inked `hand` after last word 0, then Enter lights the fire, `r` recasts, `q` smoors. After the fire is lit, kindles `leaf` once, writes `the light remains` when that spark smoors, waits for `q` (smoor) or `r` (recast, house `cast`). Packed on `make image` with `leaf`, `LEAF`, `keeper`, wax `hand`, and wax `hands`/`twin`; EFI copies the blob from `EFI/BOOT/CAIRN`. A miss of `leaf` or `keeper` is quiet. A last word other than 0 does not light the fire.

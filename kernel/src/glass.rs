@@ -254,6 +254,33 @@ fn poke(fb: Fb, x: u64, y: u64, pix: u32) {
     }
 }
 
+/// VGA text or GOP blit is standing.
+pub fn live() -> bool {
+    unsafe { core::ptr::addr_of!(VGA_MODE).read() || core::ptr::addr_of!(FB).read().addr != 0 }
+}
+
+/// House `flush` (call 7): the glass a TUI owns. Serial stays the transcript.
+/// `len == 0` presents (0 if live, `-ENODEV` if dark). `len > 0` paints `buf`
+/// with the same glyphs as `write`. Cap 1 MiB.
+pub fn flush(buf: u64, len: u64) -> u64 {
+    const EPERM: u64 = 1;
+    const ENODEV: u64 = 19;
+    fn err(n: u64) -> u64 {
+        0u64.wrapping_sub(n)
+    }
+    if !live() {
+        return err(ENODEV);
+    }
+    if len == 0 {
+        return 0;
+    }
+    if buf == 0 || len > (1 << 20) {
+        return err(EPERM);
+    }
+    put_bytes(buf as *const u8, len);
+    len
+}
+
 /// House `write` on the glass. Serial is the transcript; this is the picture.
 pub fn put_bytes(buf: *const u8, len: u64) {
     if buf.is_null() || len == 0 {

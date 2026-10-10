@@ -9,7 +9,7 @@ Swift, purposeful, direct — no noise. Unknown refuses, never silently succeeds
 - Convention: `rax` = call number, `rdi/rsi/rdx` = args 0–2. Return in `rax`.
 - Return: `0..i64::MAX` ok (bytes / ticks), negative `-errno` honest fail.
   Reuses Linux errno numbers for honesty, not compat: `38 ENOSYS` unknown,
-  `1 EPERM` refused, `11 EAGAIN` not-ready-yet (`grant`/`flush` still shut;
+  `1 EPERM` refused, `11 EAGAIN` not-ready-yet (`grant` still shut;
   nested `spawn` while a spark is already lit).
 - Clobbers `rcx/r11` (like `syscall`); preserves `rdi/rsi/rdx/r8/r9/r10`.
 - Future: `syscall/sysret` for speed. `int 0xE0` first so the gate is simple
@@ -26,7 +26,7 @@ Swift, purposeful, direct — no noise. Unknown refuses, never silently succeeds
 | 4 | `time` | — | ms | done: milliseconds from calibrated TSC when the clock is live; PIT ticks if TSC never armed; raw `rdtsc` only when both are dark |
 | 5 | `spawn` | `rdi` = name | last word or `-errno` | done (named spark onto private pages + own cup + own CR3; cairn first, then a live FAT volume's **root** by the same Gleam name). Kindles, then returns the spark's last word when it smoors. One spark at a time — a live Light → `-EAGAIN`. Guest `#UD`/`#PF`/`#GP` smoors with `-EIO` (`the spark went out`); never resumes at the fault RIP. null/empty/slashy/oversize → `-EPERM`; empty raw or bigger than 64 KiB → `-EPERM`; Gleam ELF bigger than 256 KiB or not `ET_EXEC` → `-EPERM`; no cairn and no volume → `-ENODEV`; missing → `-ENOENT`; bad chain → `-EIO`. Flat `nasm -f bin` (64 KiB, identity) and Gleam ELF64 `ET_EXEC` (256 KiB, own VA, not a Linux ABI). |
 | 6 | `grant` | — | `-EAGAIN` | shut (needs capabilities) |
-| 7 | `flush` | — | `-EAGAIN` | shut (needs Lantern framebuffer) |
+| 7 | `flush` | `rdi` = buf, `rsi` = len | bytes / `0` / `-errno` | done: the glass a TUI owns. `len == 0` presents (`0` if VGA or GOP is live, `-ENODEV` if dark). `len > 0` paints `buf` on the glass only (same glyphs as `write`: printable, newline, CR, backspace). Serial stays the transcript. Cap 1 MiB; null buf with len > 0 → `-EPERM`. |
 | 8 | `glean` | `rdi` = name, `rsi` = buf, `rdx` = len | bytes or `-errno` | done (cairn leaves first; book names `hands`/`twin`/`hand` skip the cairn when a KINDLOG slice is named, then KINDLOG when live; a named slice that is not live is wax for those names (`-ENOENT`), never FAT. Other names, if missing from the cairn, the FAT volume's **root** by the same Gleam name, 1–64, no `/`. FAT is the medium for those — no 8.3 in the house call. LFN is exact case and wins (`leaf` is not the 8.3 `LEAF` page). 8.3-only aliases fold. Missing → `-ENOENT`; no cairn and no volume → `-ENODEV`; bad xor / bad chain → `-EIO`; bad args → `-EPERM`. Cap 1 MiB. Read only.) |
 | 9 | `stow` | `rdi` = name, `rsi` = buf, `rdx` = len (= `datalen`) | bytes or `-errno` | done (cairn leaves first, exact measure, ATA re-read + LBA0; book names skip the cairn when a KINDLOG slice is named, then KINDLOG when live; a named slice that is not live paints `the log is dark` and returns `-ENODEV` for those names, never FAT. Other names, if missing from the cairn, the FAT volume's **root** — WRITE(10) each sector, wait, READ(10) compare, KINDLING `85C7-AA81` only. FAT32 creates a missing or empty root file of `len` (LFN + 8.3). Present wrong non-zero size → `-EPERM` (glass `the leaf is the wrong measure`). FAT16 re-inks only (`-ENOENT` if missing). Wrong volume → `-EPERM`; no cairn and no volume → `-ENODEV`; verify / no cluster / dir full → `-EIO`. Ink is for leaves — sparks refuse. Cap 1 MiB.) |
 | 10 | `read` | `rdi` = fd, `rsi` = buf, `rdx` = len | bytes or `-errno` | done on fd 0 (PS/2 ASCII **or** USB HID boot keyboard); other fd → `-EPERM`; neither 8042 nor xHCI kbd → `-EAGAIN`; blocks until a byte when live. Polls the 8042 data port and the xHCI event ring; `hlt` only when the PIT is armed (EFI has no IRQ0, iron IRQ1 often dies after ExitBootServices). USB boot kbd live → 8042 scancodes are drained, not pushed (same laptop key must not land twice). A glyph is held until that key is up. Dark — the spark `write`s if the glyph should show (`keeper` echoes the name; the word echoes as `*`; glass `0x08` is backspace) |
@@ -65,7 +65,7 @@ private CR3: `kindling: spawn ok`, ember kindles `wick`, the second-leaf,
 `stayed`, `gleam exit 0`. Packed with `splanc` instead, ember kindles that
 `ud2`: `kindling: trap 6`, `the spark went out`, `gleam exit 1` — `stayed`
 is a lie.
-Feature `gleam-test` looses a rustc spark: `kindling: gleam ok`, `the rust is lit`, `gleam exit 0`.
+Feature `gleam-test` looses a rustc spark: `kindling: gleam ok`, `the rust is lit`, `the glass is ours`, `gleam exit 0`. House `flush` presents, then paints the glass line; a miss there is `gleam exit 1`. Grant stays `-EAGAIN`.
 Feature `ingle-test` looses `ingle`: `kindling: ingle ok`, the spark writes
 `ingle`, kindles `keeper` when that spark is present, greets an inked `hand`
 after last word 0, `read` waits: Enter yields `the fire is lit`, `r` recasts,

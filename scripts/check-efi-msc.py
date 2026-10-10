@@ -325,9 +325,15 @@ def main() -> int:
             print(serial[-600:])
             return 1
         if "kindling: 0c 2048 2048 fat" not in t:
+            serial = serial_has("kindling: 0c 2048 2048 fat", 8)
+            t = serial.replace("\r", "")
+        if "kindling: 0c 2048 2048 fat" not in t:
             print("FAIL efi-msc (FAT partition not named)")
             print(serial[-600:])
             return 1
+        if "kindling: 83 4096 1024 other" not in t:
+            serial = serial_has("kindling: 83 4096 1024 other", 8)
+            t = serial.replace("\r", "")
         if "kindling: 83 4096 1024 other" not in t:
             print("FAIL efi-msc (dummy partition not named other)")
             print(serial[-600:])
