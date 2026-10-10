@@ -29,7 +29,7 @@ help:
 	@echo "  make kindle    flint + steel + hearth — paved fire"
 	@echo "  make hearth-see   same fire, window (lilac VGA)"
 	@echo "  make audit     several bowls; fail if a line is missing"
-	@echo "  make below     full below gate (audit+trap+fmap+fw-trap+efi+efi-ingle+efi-usb+efi-usb-hub+efi-msc+efi-leaf+efi-stow+efi-keeper+efi-sleep+efi-glass)"
+	@echo "  make below     full below gate (audit+trap+fmap+fw-trap+efi+efi-ingle+efi-usb+efi-usb-hub+efi-msc+efi-leaf+efi-stow+efi-grow+efi-keeper+efi-sleep+efi-glass)"
 	@echo "  make below-ten    gate × 10"
 	@echo "  make test      throwaway VMs (happy..leaf) + grove + efi-glass + efi-usb + efi-usb-hub + efi-msc + efi-leaf + efi-stow + efi-keeper + efi-sleep"
 	@echo "  make serial-uefi   other people's firmware, our clothes"
@@ -52,13 +52,15 @@ spark/gleam.elf: spark/gleam/src/main.rs spark/gleam/gleam.ld spark/gleam/Cargo.
 
 gleam-spark: spark/gleam.elf
 
-$(IMAGE): flint steel $(LD_BIN) scripts/mkimg.py spark/ingle.asm spark/leaf.asm spark/keeper.asm spark/LEAF.txt
+$(IMAGE): flint steel $(LD_BIN) scripts/mkimg.py spark/ingle.asm spark/leaf.asm spark/keeper.asm spark/bud.asm spark/LEAF.txt spark/gleam.elf
 	$(NASM) -f bin -o spark/ingle.bin spark/ingle.asm
 	$(NASM) -f bin -o spark/leaf.bin spark/leaf.asm
 	$(NASM) -f bin -o spark/keeper.bin spark/keeper.asm
+	$(NASM) -f bin -o spark/bud.bin spark/bud.asm
 	python3 -c "from pathlib import Path; Path('spark/hand.bin').write_bytes(bytes(32)); Path('spark/hands.bin').write_bytes(bytes(716)); Path('spark/twin.bin').write_bytes(bytes(716))"
 	python3 scripts/mkimg.py --loader $(LD_BIN) --kernel kernel/kernel.fw.bin \
-		--spark ingle=spark/ingle.bin --spark leaf=spark/leaf.bin \
+		--spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
+		--spark bud=spark/bud.bin --spark leaf=spark/leaf.bin \
 		--spark keeper=spark/keeper.bin --leaf LEAF=spark/LEAF.txt \
 		--leaf hand=spark/hand.bin --leaf hands=spark/hands.bin \
 		--leaf twin=spark/twin.bin --out $@ --cairn-out spark/cairn.bin

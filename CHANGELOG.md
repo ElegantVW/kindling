@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## grow-g59 (2026-10-10)
+
+- FAT32 `stow` grows or shrinks a present root file to the asked measure (extra clusters allocated and zeroed; a shorter file frees the tail). Cairn leaves stay exact measure. Spark `bud` inks FAT `page` 10→600 after the fire; already inked it says `kept`. A dark volume is quiet. `make below` += efi-grow. Plant EFI + CAIRN + wax `page` — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## floor-g58 (2026-10-10)
 
 - Iron `trap 14` after the fire: gleam sat at 1 GiB, which is the EFI well cap and where the IdeaPad GOP can live, so the user walk had no U/S. Floor moves to 1.25 GiB (`0x50000000`). Spawn clones GOP gigs instead of sharing them. Guest traps on the glass wear critters (`bunny` is `#PF`); serial still `kindling: trap N`. ingle-leaf also at 2 GiB RAM. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.

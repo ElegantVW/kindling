@@ -86,9 +86,8 @@ still paints, the glass says `no ingle`. Limine still has no cairn.
 
 ## Laying down (stow, G2b)
 
-`stow` re-inks a leaf with the same measure (`len` must equal `datalen` —
-growing leaves is later work; ink is for leaves, sparks refuse). Cairn
-first (kind 0). The ATA rite:
+`stow` re-inks a cairn leaf with the same measure (`len` must equal
+`datalen`; ink is for leaves, sparks refuse). Cairn first (kind 0). The ATA rite:
 
 1. Verify (KMAP scratch → checksum → walk → leaf xor, as `glean` does).
 2. Copy the bytes + recompute the leaf xor + recompute the cairn sum, all in
@@ -99,13 +98,13 @@ first (kind 0). The ATA rite:
    cairn) and verify that sector too.
 
 When that name is missing (or there is no cairn) and MSC saw a FAT volume,
-`stow` takes the volume's **root** by the same Gleam name. Exact measure.
+`stow` takes the volume's **root** by the same Gleam name.
 WRITE(10) each sector, wait, READ(10) compare. The volume serial must be KINDLING
 `85C7-AA81` (Linux vfat UUID). A different volume is `-EPERM`. DMA dest
 stays the MSC page. On FAT32 a missing or empty root file is created
-(allocate clusters, LFN + 8.3, both FAT copies). A present file of another
-non-zero size is `-EPERM` and the glass says `the leaf is the wrong measure`.
-FAT16 still re-inks only.
+(allocate clusters, LFN + 8.3, both FAT copies), and a present file grows or
+shrinks to `len` (extra clusters allocated and zeroed; a shorter file frees
+the tail). FAT16 still re-inks same measure only.
 
 Sparks run from a private pool copy, never in place: a spark's buf lives
 inside its own record, and running in place lets its writes perturb the image
@@ -146,7 +145,9 @@ is the design working.
 - **gleam** — G55 rustc `no_std` spark. House `write`, then G56 `flush` (present + a glass-only line), then `exit 0`. Linked at 1.25 GiB (G58). Packed on the gleam-test image and, from G57, on the paved cairn / ingle-leaf / efi-ingle so ingle kindles it after the fire. Proof lines `the rust is lit` and `the glass is ours`.
 - **splanc** — a spark that does not catch (G31). Irish *splanc*. `ud2`; the house names the miss.
 - **second-leaf** — `the cup is its own`.
-- **ingle** — the greeter spark, the desktop (G34). Writes its name, kindles `keeper` when present, greets an inked `hand` after last word 0, then Enter lights the fire, `r` recasts, `q` smoors. After the fire is lit, kindles `gleam` once (G57; a miss is quiet; a last word other than 0 fails), then `leaf` once, writes `the light remains` when that spark smoors, waits for `q` (smoor) or `r` (recast, house `cast`). Packed on `make image` with `gleam`, `leaf`, `LEAF`, `keeper`, wax `hand`, and wax `hands`/`twin`; EFI copies the blob from `EFI/BOOT/CAIRN`. A miss of `gleam`, `leaf`, or `keeper` is quiet. A last word other than 0 from `keeper` does not light the fire.
+- **ingle** — the greeter spark, the desktop (G34). Writes its name, kindles `keeper` when present, greets an inked `hand` after last word 0, then Enter lights the fire, `r` recasts, `q` smoors. After the fire is lit, kindles `gleam` once (G57; a miss is quiet; a last word other than 0 fails), then `bud` once (G59; a miss is quiet; a last word other than 0 fails), then `leaf` once, writes `the light remains` when that spark smoors, waits for `q` (smoor) or `r` (recast, house `cast`). Packed on `make image` with `gleam`, `bud`, `leaf`, `LEAF`, `keeper`, wax `hand`, and wax `hands`/`twin`; EFI copies the blob from `EFI/BOOT/CAIRN`. A miss of `gleam`, `bud`, `leaf`, or `keeper` is quiet. A last word other than 0 from `keeper` does not light the fire.
+- **bud** — G59 grow spark. Gleans FAT `page`; wax (10) or a miss becomes ink (600) and writes `the leaf grew`. Already inked it writes `kept`. A dark volume is quiet (`exit 0`) so ingle still kindles `leaf`. Not packed as a cairn *leaf* named `page`.
+- **page** — G59 FAT leaf. Wax `wax waits` (10). Ink `a longer leaf` plus `L` fill (600). Not in the cairn. KINDLING `85C7-AA81` only.
 - **keeper** — G37 Setup Assistant, G40 hall. Empty book: name, word, word again, `enlist`. Later: list keepers; digit `choose`s, `n` enlists, `d` dismisses, `r` recasts. Printable name keys echo; the word echoes as stars; backspace edits (G38). The hall answers (G41): `the name is cut`, `the word sleeps in the twin`, `this fire knows you`, `that name is given back`; a confirm miss is `the second word is a stranger`.
 - **hand** — G37/G39 chosen name. Measure 32. Wax is 32 zeros. `enlist`/`choose` ink it. A miss there is quiet. `ingle` greets it after a successful last word 0.
 - **hands** — G39 book. Exact measure 716. AES-256-GCM under `SHA-256("kindling-hands"\|\|vol_id)`. Roster of 8 slots. Not a spark. FAT root on EFI / KINDLING; cairn on the BIOS hearth.

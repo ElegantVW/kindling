@@ -6,7 +6,7 @@ x86_64 kernel we write. The pink suite is userspace. Creature name: **Kindling**
 
 Status: research kernel, boots QEMU BIOS/EFI. For: osdev readers. Not for: daily driver, Linux ABI, production.
 
-Phase 1 (memory: kindle well + cup-stack) is green. House light (G15–G58) is on: CPL3 `write`/`exit`/`read`, tale, stow, spawn that returns (ember kindles wick; the light remains; a miss on the cairn gathers from the volume root), guest traps smoor (`the spark went out`), Grove on the glass, `ingle` greeter on the paved BIOS and EFI boots (kindles `keeper`, greets an inked `hand` after a choose, kindles `gleam` after the fire is lit, then `leaf`, writes `the light remains` when that spark smoors), USB HID boot keyboard into house `read` (root or one hub hop), one clock (`sleep`/`time` are ms on EFI too), USB MSC BOT enumerate (READ CAPACITY, glass `msc`) and READ(10) of a FAT boot sector (glass `fat`, MBR/GPT walk), `glean` of a named leaf from the volume root, `stow` of a named leaf onto that root (WRITE(10)+reread, KINDLING `85C7-AA81` only; FAT32 creates a missing or empty leaf), spark `leaf` tells that page and waits for `q`, the book (`hands`/`twin`) keeps keepers behind AES-256-GCM twins, and the hall answers (`the name is cut`, `the word sleeps in the twin`, `this fire knows you`). No-Light `exit` paints `kindling: gleam exit N` on the glass. Gleam ELF (rustc `no_std`, house calls) is in; `flush` paints the glass a TUI owns; Linux ELF stays later; `grant` stays shut.
+Phase 1 (memory: kindle well + cup-stack) is green. House light (G15–G59) is on: CPL3 `write`/`exit`/`read`, tale, stow, spawn that returns (ember kindles wick; the light remains; a miss on the cairn gathers from the volume root), guest traps smoor (`the spark went out`), Grove on the glass, `ingle` greeter on the paved BIOS and EFI boots (kindles `keeper`, greets an inked `hand` after a choose, kindles `gleam` after the fire is lit, then `bud` (grows FAT `page`), then `leaf`, writes `the light remains` when that spark smoors), USB HID boot keyboard into house `read` (root or one hub hop), one clock (`sleep`/`time` are ms on EFI too), USB MSC BOT enumerate (READ CAPACITY, glass `msc`) and READ(10) of a FAT boot sector (glass `fat`, MBR/GPT walk), `glean` of a named leaf from the volume root, `stow` of a named leaf onto that root (WRITE(10)+reread, KINDLING `85C7-AA81` only; FAT32 creates, grows, or shrinks a root leaf), spark `leaf` tells that page and waits for `q`, the book (`hands`/`twin`) keeps keepers behind AES-256-GCM twins, and the hall answers (`the name is cut`, `the word sleeps in the twin`, `this fire knows you`). No-Light `exit` paints `kindling: gleam exit N` on the glass. Gleam ELF (rustc `no_std`, house calls) is in; `flush` paints the glass a TUI owns; Linux ELF stays later; `grant` stays shut.
 
 ## Look
 
@@ -75,7 +75,7 @@ make below          # full below gate (audit+trap+fmap+fw-trap+efi+efi-ingle+efi
 
 ## Phases
 
-0 serial hello → **1 memory (kindle well + cup-stack)** → house light (G15–G58) → `grant` / Linux ELF → 3 fork/exec → … suite as guest.
+0 serial hello → **1 memory (kindle well + cup-stack)** → house light (G15–G59) → `grant` / Linux ELF → 3 fork/exec → … suite as guest.
 
 ## License
 

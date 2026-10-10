@@ -2196,6 +2196,95 @@ fn alloc_chain(h: &mut Host, nclus: u32) -> Option<u32> {
     Some(first)
 }
 
+fn chain_len(h: &mut Host, first: u32) -> Option<u32> {
+    let vol = h.vol;
+    let mut c = first;
+    let mut n = 0u32;
+    while c >= 2 && n < MAX_FILE_SEC {
+        n = n.saturating_add(1);
+        match fat_next(h, &vol, c) {
+            Some(0) => return Some(n),
+            Some(next) => c = next,
+            None => return None,
+        }
+    }
+    None
+}
+
+fn chain_nth(h: &mut Host, first: u32, idx: u32) -> Option<u32> {
+    let vol = h.vol;
+    let mut c = first;
+    let mut i = 0u32;
+    while c >= 2 && i < MAX_FILE_SEC {
+        if i == idx {
+            return Some(c);
+        }
+        match fat_next(h, &vol, c) {
+            Some(0) => return None,
+            Some(next) => c = next,
+            None => return None,
+        }
+        i = i.saturating_add(1);
+    }
+    None
+}
+
+/// Grow or shrink a present FAT32 chain to `len`, then patch the dirent.
+/// Same cluster count only updates the size. Extra clusters are allocated
+/// and zeroed; a shorter file keeps the prefix and frees the tail.
+fn resize_file(h: &mut Host, hit: &FatHit, len: u64) -> Result<u32, u64> {
+    if h.vol.fat16 {
+        return Err(EPERM);
+    }
+    let new_n = clusters_for(&h.vol, len);
+    if new_n == 0 || hit.clus < 2 {
+        return Err(EPERM);
+    }
+    let Some(old_n) = chain_len(h, hit.clus) else {
+        return Err(EIO);
+    };
+    let clus = hit.clus;
+    if new_n > old_n {
+        let extra = new_n - old_n;
+        let Some(add) = alloc_chain(h, extra) else {
+            return Err(EIO);
+        };
+        if !zero_chain(h, add) {
+            free_chain(h, add);
+            return Err(EIO);
+        }
+        let Some(tail) = chain_nth(h, clus, old_n - 1) else {
+            free_chain(h, add);
+            return Err(EIO);
+        };
+        if !fat_set(h, tail, add) {
+            free_chain(h, add);
+            return Err(EIO);
+        }
+    } else if new_n < old_n {
+        let Some(keep_last) = chain_nth(h, clus, new_n - 1) else {
+            return Err(EIO);
+        };
+        let vol = h.vol;
+        let drop = match fat_next(h, &vol, keep_last) {
+            Some(0) => 0,
+            Some(n) => n,
+            None => return Err(EIO),
+        };
+        if !fat_set(h, keep_last, FAT_EOC) {
+            return Err(EIO);
+        }
+        if drop >= 2 {
+            free_chain(h, drop);
+        }
+    }
+    if !patch_dirent(h, hit, clus, len as u32) {
+        return Err(EIO);
+    }
+    recover();
+    Ok(clus)
+}
+
 fn zero_chain(h: &mut Host, first: u32) -> bool {
     let mut c = first;
     let mut n = 0u32;
@@ -2607,9 +2696,10 @@ fn finish_write(h: &mut Host, clus: u32, len: u64, buf: u64) -> u64 {
     n
 }
 
-/// Re-ink a named root file, or create it when missing / empty.
-/// Exact measure. KINDLING `85C7-AA81` only. WRITE(10) each sector,
-/// wait, READ(10) compare. DMA dest stays MSC_DATA. FAT32 create; FAT16 re-inks.
+/// Re-ink a named root file, create it when missing / empty, or grow / shrink
+/// a present FAT32 file to `len`. KINDLING `85C7-AA81` only. WRITE(10) each
+/// sector, wait, READ(10) compare. DMA dest stays MSC_DATA. FAT16 re-inks
+/// same measure only.
 pub fn stow_fat(name: &[u8], buf: u64, len: u64) -> u64 {
     if buf == 0 || len == 0 || len > GLEAN_MAX || name.is_empty() || name.len() > 64 {
         return err(EPERM);
@@ -2647,6 +2737,10 @@ pub fn stow_fat(name: &[u8], buf: u64, len: u64) -> u64 {
             recover();
             finish_write(h, clus, len, buf)
         }
+        Ok(hit) if !h.vol.fat16 && hit.clus >= 2 => match resize_file(h, &hit, len) {
+            Ok(clus) => finish_write(h, clus, len, buf),
+            Err(e) => err(e),
+        },
         Ok(hit) if hit.size as u64 != len => {
             speak_fat("the leaf is the wrong measure\n");
             err(EPERM)

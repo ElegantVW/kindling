@@ -316,8 +316,8 @@ fn cairn_xor(base: u64, len: u64) -> u32 {
 /// does not fall through to FAT.
 /// Other names, if missing from the cairn, stow the
 /// FAT volume's root — WRITE(10) each sector, wait, READ(10) compare, KINDLING
-/// `85C7-AA81` only. FAT32 creates a missing or empty root file of `len`;
-/// a present file of another non-zero size is `-EPERM`. FAT16 re-inks only.
+/// `85C7-AA81` only. FAT32 creates a missing or empty root file of `len`,
+/// and grows or shrinks a present file to `len`. FAT16 re-inks same measure.
 /// Cairn ink still goes through ATA, re-reads, and rewrites LBA0. Returns
 /// bytes laid or `-errno` (`EPERM` args/shape/wrong volume/wrong measure,
 /// `ENOENT` FAT16 missing, `ENODEV` no cairn and no volume, `EIO` disk

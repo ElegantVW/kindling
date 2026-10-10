@@ -170,10 +170,13 @@ ingle)
 ingle-leaf)
     nasm -f bin -o spark/ingle.bin spark/ingle.asm
     nasm -f bin -o spark/leaf.bin spark/leaf.asm
+    nasm -f bin -o spark/bud.bin spark/bud.asm
+    make spark/gleam.elf >/dev/null
     make -C kernel ingle-bin >/dev/null
     python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
         --kernel kernel/kernel.ingle.bin --out kindling-ingle-leaf.img \
-        --spark ingle=spark/ingle.bin --spark leaf=spark/leaf.bin \
+        --spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
+        --spark bud=spark/bud.bin --spark leaf=spark/leaf.bin \
         --leaf LEAF=spark/LEAF.txt >/dev/null
     python3 scripts/check-ingle-leaf.py
     ;;

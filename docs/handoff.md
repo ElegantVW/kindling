@@ -16,6 +16,14 @@ Bowl of unused names: [lore/fae-names.md](lore/fae-names.md) (research dataset).
 
 ---
 
+## 2026-10-10 — Gleed — G59 grow a leaf
+
+- Did: FAT32 `stow` resizes a present root file. Spark `bud` gleans `page`, grows wax 10 to ink 600, writes `the leaf grew`. Second boot `kept`. `ingle` kindles `bud` after gleam (miss quiet). Cairn leaves stay exact. FAT16 still same measure.
+- Proof: `make below` efi-grow greps `the leaf grew` then `kept`; dirent 600; ingle-leaf still rust/glass/volume.
+- Git: this tree, local. No push.
+- Next: iron on the IdeaPad (choose `even`, word, Enter; after glass, `the leaf grew`, then the volume); then a first tiny TUI on that glass.
+- Do not: Linux ELF; open `grant`; wax KINDLOG; a new V; push.
+
 ## 2026-10-10 — Gleed — G58 gleam floor (iron bunny)
 
 - Did: Iron after the fire: `kindling: trap 14` / `the spark went out` / leaf still spoke. Gleam's 1 GiB floor sat on the EFI well cap and the IdeaPad GOP. New floor 1.25 GiB. Clone copies 0–3 GiB even without U/S (GOP). Glass names guest traps (`bunny` / `hedgehog` / `fox` / `mole` / `critter`); serial keeps the number.
