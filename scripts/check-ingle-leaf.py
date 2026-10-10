@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Boot ingle with leaf packed: greet, leaf speaks, q homes, q leaves."""
+"""Boot ingle with gleam+leaf packed: greet, rust/glass, leaf speaks, q homes, q leaves."""
 from __future__ import annotations
 
 import os
@@ -105,6 +105,22 @@ def main() -> int:
         t = serial.replace("\r", "")
         if "the fire is lit" not in t:
             print("FAIL ingle-leaf (no greeting)")
+            print(serial[-400:])
+            sock.close()
+            return 1
+        if "the rust is lit" not in t:
+            serial = serial_has("the rust is lit", 4)
+            t = serial.replace("\r", "")
+        if "the rust is lit" not in t:
+            print("FAIL ingle-leaf (gleam never wrote the rust)")
+            print(serial[-400:])
+            sock.close()
+            return 1
+        if "the glass is ours" not in t:
+            serial = serial_has("the glass is ours", 4)
+            t = serial.replace("\r", "")
+        if "the glass is ours" not in t:
+            print("FAIL ingle-leaf (gleam never wrote the glass)")
             print(serial[-400:])
             sock.close()
             return 1

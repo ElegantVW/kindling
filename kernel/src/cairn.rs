@@ -633,28 +633,12 @@ fn load_spark(src: u64, len: u64) -> Result<crate::mm::SparkRealm, u64> {
     }
 }
 
-/// Contiguous pool run for a spark. None = scattered (run returned to the pool).
+/// Contiguous pool run for a spark. None = scattered.
 fn take_pages(len: u64) -> Option<u64> {
     if len == 0 {
         return None;
     }
-    let pages = len.div_ceil(4096);
-    let mut dst = 0u64;
-    let mut prev = 0u64;
-    let mut i = 0u64;
-    while i < pages {
-        let p = crate::mm::page_alloc();
-        if dst == 0 {
-            dst = p;
-        } else if p != prev + 4096 {
-            crate::mm::release_run(dst, i * 4096);
-            crate::mm::release_run(p, 4096);
-            return None;
-        }
-        prev = p;
-        i += 1;
-    }
-    Some(dst)
+    crate::mm::page_alloc_run(len.div_ceil(4096))
 }
 
 /// Copy a spark onto a contiguous pool run. None = scattered.

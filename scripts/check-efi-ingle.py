@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Boot EFI ingle (OVMF + CAIRN on the ESP), send Enter, prove the greeter spoke."""
+"""Boot EFI ingle (OVMF + CAIRN on the ESP), send Enter, prove gleam after the fire."""
 from __future__ import annotations
 
 import os
@@ -138,6 +138,22 @@ def main() -> int:
         t = serial.replace("\r", "")
         if "the fire is lit" not in t:
             print("FAIL efi-ingle (no greeting)")
+            print(serial[-600:])
+            sock.close()
+            return 1
+        if "the rust is lit" not in t:
+            serial = serial_has("the rust is lit", 8)
+            t = serial.replace("\r", "")
+        if "the rust is lit" not in t:
+            print("FAIL efi-ingle (gleam never wrote the rust)")
+            print(serial[-600:])
+            sock.close()
+            return 1
+        if "the glass is ours" not in t:
+            serial = serial_has("the glass is ours", 8)
+            t = serial.replace("\r", "")
+        if "the glass is ours" not in t:
+            print("FAIL efi-ingle (gleam never wrote the glass)")
             print(serial[-600:])
             sock.close()
             return 1

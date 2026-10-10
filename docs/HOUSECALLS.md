@@ -69,9 +69,11 @@ Feature `gleam-test` looses a rustc spark: `kindling: gleam ok`, `the rust is li
 Feature `ingle-test` looses `ingle`: `kindling: ingle ok`, the spark writes
 `ingle`, kindles `keeper` when that spark is present, greets an inked `hand`
 after last word 0, `read` waits: Enter yields `the fire is lit`, `r` recasts,
-`q` smoors. Then `ingle` kindles `leaf` once (a miss is quiet). A last word ≥ 0
-writes `the light remains`. `read` until `q` (smoor) or `r` (recast). A miss of
-`keeper` is quiet. A last word other than 0 does not light the fire.
+`q` smoors. Then `ingle` kindles `gleam` once (flush proof; a miss is quiet;
+a last word other than 0 fails), then `leaf` once (a miss is quiet). A last
+word ≥ 0 from `leaf` writes `the light remains`. `read` until `q` (smoor) or
+`r` (recast). A miss of `keeper` is quiet. A last word other than 0 does not
+light the fire.
 Feature `leaf-test` looses `leaf`: `kindling: leaf ok`, the spark gleans
 `LEAF`, writes the page, `read` waits for `q` or `r`.
 Feature `tale-test` on EFI (`efi-stow`) looses `tale` against a FAT slate:

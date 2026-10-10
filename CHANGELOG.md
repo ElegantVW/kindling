@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## paved-g57 (2026-10-10)
+
+- After the fire is lit, `ingle` kindles `gleam` (flush on the glass). A miss is quiet so ingle-only images still greet. Packed on ingle-leaf, efi-ingle, and the paved cairn. Cup/spark runs search the pool by physical address so an ELF at 1 GiB can smoor and a raw spark can still kindle. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## flush-g56 (2026-10-10)
 
 - House call 7 `flush` is the glass a TUI owns. Empty presents (`0` if VGA/GOP live, `-ENODEV` if dark). A buffer paints the glass only; serial stays the transcript. `grant` stays `-EAGAIN`. rustc spark: `the rust is lit` / `the glass is ours` / `gleam exit 0`. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.

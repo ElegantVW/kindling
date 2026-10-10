@@ -290,11 +290,12 @@ python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
 echo "---- ingle-leaf ----"
 nasm -f bin -o spark/ingle.bin spark/ingle.asm
 nasm -f bin -o spark/leaf.bin spark/leaf.asm
+make spark/gleam.elf
 make -C kernel ingle-bin
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --kernel kernel/kernel.ingle.bin --out kindling-ingle-leaf.img \
-  --spark ingle=spark/ingle.bin --spark leaf=spark/leaf.bin \
-  --leaf LEAF=spark/LEAF.txt
+  --spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
+  --spark leaf=spark/leaf.bin --leaf LEAF=spark/LEAF.txt
 python3 scripts/check-ingle-leaf.py
 python3 scripts/check-ingle-leaf-cast.py
 # restore the paved kernel for later steps
@@ -427,9 +428,11 @@ echo "ok   efi"
 
 echo "---- efi-ingle ----"
 nasm -f bin -o spark/ingle.bin spark/ingle.asm
+make spark/gleam.elf
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --kernel kernel/kernel.fw.bin --out kindling.img \
-  --spark ingle=spark/ingle.bin --cairn-out spark/cairn.bin
+  --spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
+  --cairn-out spark/cairn.bin
 rm -rf esp
 mkdir -p esp/EFI/BOOT
 cp -f kernel/BOOTX64.EFI esp/EFI/BOOT/
@@ -467,12 +470,14 @@ echo "---- paved cairn ----"
 nasm -f bin -o spark/ingle.bin spark/ingle.asm
 nasm -f bin -o spark/leaf.bin spark/leaf.asm
 nasm -f bin -o spark/keeper.bin spark/keeper.asm
+make spark/gleam.elf
 python3 -c "from pathlib import Path; Path('spark/hand.bin').write_bytes(bytes(32)); Path('spark/hands.bin').write_bytes(bytes(716)); Path('spark/twin.bin').write_bytes(bytes(716))"
 make steel >/dev/null
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --kernel kernel/kernel.fw.bin --out kindling.img \
-  --spark ingle=spark/ingle.bin --spark leaf=spark/leaf.bin \
-  --spark keeper=spark/keeper.bin --leaf LEAF=spark/LEAF.txt \
+  --spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
+  --spark leaf=spark/leaf.bin --spark keeper=spark/keeper.bin \
+  --leaf LEAF=spark/LEAF.txt \
   --leaf hand=spark/hand.bin --leaf hands=spark/hands.bin \
   --leaf twin=spark/twin.bin --cairn-out spark/cairn.bin
 

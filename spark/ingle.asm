@@ -1,8 +1,9 @@
 ; ingle — greeter spark, the desktop. Writes its name, kindles keeper
 ; when that spark is present, greets the hand after a last word 0, then
 ; reads: Enter lights the fire, r recasts, q smoors. After the fire is
-; lit, kindles leaf once, writes the light remains when that spark smoors,
-; reads until q (smoor) or r (recast).
+; lit, kindles gleam once (flush proof; a miss is quiet; a last word
+; other than 0 fails), then leaf once, writes the light remains when
+; that spark smoors, reads until q (smoor) or r (recast).
 ; A miss of keeper is quiet (Enter still lights the fire). A last word
 ; other than 0 does not light the fire.
 ; Flat binary, nasm -f bin, entry 0.
@@ -85,6 +86,14 @@ start:
         mov     rdx, 16
         int     0xE0
 
+        mov     rax, 5                  ; spawn "gleam" — flush on the glass
+        lea     rdi, [rel gleamname]
+        int     0xE0
+        test    rax, rax
+        js      .nogleam                ; miss is quiet
+        test    rax, rax
+        jnz     .fail                   ; last word != 0 — flush missed
+.nogleam:
         mov     rax, 5                  ; spawn "leaf"
         lea     rdi, [rel leafname]
         int     0xE0
@@ -128,6 +137,7 @@ nl:     db      10
 lit:    db      "the fire is lit", 10
 home:   db      "the light remains", 10
 leafname: db    "leaf", 0
+gleamname: db   "gleam", 0
 handname: db    "hand", 0
 keepername: db  "keeper", 0
 key:    db      0

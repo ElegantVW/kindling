@@ -280,6 +280,68 @@ pub(crate) fn page_alloc() -> u64 {
     }
 }
 
+/// `n` physically contiguous pages. LIFO pop is enough on a bump; an ELF
+/// at 1 GiB returns extra tables, so the next cup must search the pool.
+pub(crate) fn page_alloc_run(n: u64) -> Option<u64> {
+    if n == 0 {
+        return None;
+    }
+    unsafe {
+        let pool = core::ptr::addr_of_mut!(POOL).cast::<u64>();
+        let pn = core::ptr::addr_of_mut!(POOL_N);
+        let count = pn.read();
+        if (n as usize) > count {
+            return None;
+        }
+        let mut i = 0usize;
+        while i < count {
+            let base = pool.add(i).read();
+            let mut k = 1u64;
+            let mut ok = true;
+            while k < n {
+                let want = base + k * PAGE;
+                let mut found = false;
+                let mut j = 0usize;
+                while j < count {
+                    if pool.add(j).read() == want {
+                        found = true;
+                        break;
+                    }
+                    j += 1;
+                }
+                if !found {
+                    ok = false;
+                    break;
+                }
+                k += 1;
+            }
+            if ok {
+                k = 0;
+                while k < n {
+                    let want = base + k * PAGE;
+                    let live = pn.read();
+                    let mut j = 0usize;
+                    while j < live {
+                        if pool.add(j).read() == want {
+                            let last = live - 1;
+                            pn.write(last);
+                            if j != last {
+                                pool.add(j).write(pool.add(last).read());
+                            }
+                            break;
+                        }
+                        j += 1;
+                    }
+                    k += 1;
+                }
+                return Some(base);
+            }
+            i += 1;
+        }
+        None
+    }
+}
+
 // --- G20: spawn map. Clone the kernel tables, strip U/S from kernel
 // leaves, split the 2M covering spark+cup+guard into 4K, and grant user
 // only those floorboards. APIC PDPT[3] is shared supervisor.
@@ -497,20 +559,15 @@ pub fn place_spark_at(spark: u64, spark_len: u64, va_base: u64, entry: u64) -> S
     if kcr3 == 0 {
         spawn_fail(5);
     }
+    let np = spark_len.div_ceil(PAGE);
+    let Some(guard) = page_alloc_run(GUARD_AND_CUP as u64) else {
+        spawn_fail(11);
+    };
+    let cup_base = guard + PAGE;
     let cr3 = clone_kernel_map();
     if cr3 == kcr3 {
         spawn_fail(5);
     }
-    let np = spark_len.div_ceil(PAGE);
-    let mut slot = [0u64; GUARD_AND_CUP];
-    for i in 0..GUARD_AND_CUP {
-        slot[i] = page_alloc();
-        if i > 0 && slot[i] != slot[i - 1] + PAGE {
-            spawn_fail(11);
-        }
-    }
-    let guard = slot[0];
-    let cup_base = slot[1];
     unsafe {
         (cup_base as *mut u64).write_volatile(CANARY);
         let mut p = 0u64;
