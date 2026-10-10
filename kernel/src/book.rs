@@ -444,13 +444,11 @@ fn ink_miss(e: u64) -> Result<(), u64> {
 }
 
 fn ink_hand(name: &[u8; NAME_LEN]) -> Result<(), u64> {
+    // Greeting only. A miss stays quiet — the word already passed.
     match stow_leaf(&HAND_NAME, name) {
         Ok(n) if n == NAME_LEN as u64 => Ok(()),
-        Ok(_) => {
-            speak("the ink will not hold\n");
-            Err(err(EIO))
-        }
-        Err(e) => ink_miss(e),
+        Ok(_) => Err(err(EIO)),
+        Err(e) => Err(err(e)),
     }
 }
 

@@ -236,6 +236,8 @@ def main() -> int:
         t = serial.replace("\r", "")
         if "kindling: gleam exit 0" not in t:
             return fail("no gleam exit 0 on first boot", t)
+        if "the ink will not hold" in t:
+            return fail("greeting miss yelled on first boot", t)
         if WORD in t:
             return fail("the word leaked on serial", t)
         blob = IMG.read_bytes()
@@ -285,6 +287,8 @@ def main() -> int:
         t = serial.replace("\r", "")
         if "kindling: gleam exit 0" not in t:
             return fail("no gleam exit 0 on second boot", t)
+        if "the ink will not hold" in t:
+            return fail("greeting miss yelled on choose", t)
         if WORD in t:
             return fail("the word leaked on serial", t)
         print("ok   ingle-keeper")

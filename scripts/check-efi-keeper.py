@@ -776,6 +776,8 @@ def main() -> int:
         t = serial.replace("\r", "")
         if SLEEP not in t:
             return fail("enlist did not lay the word in the twin", t)
+        if "the ink will not hold" in t:
+            return fail("greeting miss yelled after enlist", t)
         t = wait_greet(SLEEP, NAME, 8)
         tail = crush(t[t.rfind(SLEEP) :]) if SLEEP in t else t
         if f"\n{NAME}\n" not in tail and not tail.endswith(f"{NAME}\n") and not tail.endswith(f"\n{NAME}"):
@@ -831,6 +833,8 @@ def main() -> int:
         t = serial.replace("\r", "")
         if KNOWS not in t:
             return fail("choose did not answer", t)
+        if "the ink will not hold" in t:
+            return fail("greeting miss yelled after choose", t)
         t = wait_greet(KNOWS, NAME2, 8)
         tail = crush(t[t.rfind(KNOWS) :]) if KNOWS in t else t
         if f"\n{NAME2}\n" not in tail and not tail.endswith(f"{NAME2}\n") and not tail.endswith(f"\n{NAME2}"):

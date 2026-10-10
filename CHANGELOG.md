@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## quiet-g54 (2026-10-10)
+
+- Host opened both KINDLOG seals; twins match; `even` is live with salt and verifier. AES wraps the roster. The word is a SHA-256 inside that plaintext. Iron `the ink will not hold` after `speak the word` was the greeting WRITE (`hand`), after the word already matched. `ink_hand` miss stays quiet. `the ink will not hold` only when the seals fail to land. Plant EFI only — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## recast-g53 (2026-10-10)
 
 - Iron `r` did nothing on first boot (name showing) and on the next hall: only `leaf` and ingle-after-leaf knocked `cast`. Greeting keys did not echo, so `r` was swallowed until Enter. Hall `r` redrew the list. `ingle` recasts at the name; `keeper` recasts from the hall menu. `make below` += ingle-hall-cast. Plant CAIRN only — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
