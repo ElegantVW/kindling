@@ -2,7 +2,7 @@
 # test-vm — Kindling test VM: build (if asked), boot, judge the transcript.
 #
 # usage:
-#   test-vm happy|house|ring3|reclaim|tale|spawn|splanc|ingle|ingle-leaf|ingle-keeper|leaf   build + boot the known image
+#   test-vm happy|house|ring3|reclaim|tale|spawn|splanc|gleam|ingle|ingle-leaf|ingle-keeper|leaf   build + boot the known image
 #   test-vm <image> <want>...           boot any image; every want must appear
 #
 # Logs land in test-logs/<case>.log. Prints PASS/FAIL. Exit 0/1.
@@ -148,6 +148,16 @@ splanc)
         tail -8 "$LOGDIR/splanc.log"
         exit 1
     fi
+    ;;
+gleam)
+    make spark/gleam.elf >/dev/null
+    make -C kernel gleam-bin >/dev/null
+    python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
+        --kernel kernel/kernel.gleam.bin --out kindling-gleam.img \
+        --spark gleam=spark/gleam.elf >/dev/null
+    run_case gleam kindling-gleam.img \
+        "kindling: house ok" "kindling: gleam ok" \
+        "the rust is lit" "kindling: gleam exit 0"
     ;;
 ingle)
     nasm -f bin -o spark/ingle.bin spark/ingle.asm

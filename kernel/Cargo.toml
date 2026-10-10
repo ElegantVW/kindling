@@ -17,6 +17,7 @@ tale-test = []
 spawn-test = []
 ingle-test = []
 leaf-test = []
+gleam-test = []
 
 [dependencies]
 limine = "0.5"

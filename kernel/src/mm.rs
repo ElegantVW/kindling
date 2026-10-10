@@ -295,6 +295,7 @@ pub struct SparkRealm {
     pub spark_len: u64,
     pub cup_base: u64,
     pub guard: u64,
+    pub entry: u64,
 }
 
 fn spawn_fail(n: u64) -> ! {
@@ -419,17 +420,30 @@ unsafe fn pte4k(cr3: u64, va: u64) -> *mut u64 {
         let e0 = (cr3 as *const u64)
             .add(((va >> 39) & 511) as usize)
             .read_volatile();
-        let e1 = (pte_phys(e0) as *const u64)
-            .add(((va >> 30) & 511) as usize)
-            .read_volatile();
-        if e0 & P == 0 || e1 & P == 0 || e1 & PS != 0 {
+        if e0 & P == 0 || e0 & PS != 0 {
             spawn_fail(6);
         }
-        let pd = pte_phys(e1) as *mut u64;
+        let pdpt = pte_phys(e0) as *mut u64;
+        let gb = ((va >> 30) & 511) as usize;
+        let e1 = pdpt.add(gb).read_volatile();
+        let pd = if e1 & P == 0 {
+            let pd = page_alloc();
+            core::ptr::write_bytes(pd as *mut u8, 0, PAGE as usize);
+            pdpt.add(gb).write_volatile(pd | P | RW | US);
+            pd
+        } else if e1 & PS != 0 {
+            spawn_fail(6)
+        } else {
+            pte_phys(e1)
+        };
+        let pd = pd as *mut u64;
         let pdi = ((va >> 21) & 511) as usize;
         let pde = pd.add(pdi).read_volatile();
         let pt = if pde & P == 0 {
-            spawn_fail(6)
+            let pt = page_alloc();
+            core::ptr::write_bytes(pt as *mut u8, 0, PAGE as usize);
+            pd.add(pdi).write_volatile(pt | P | RW | US);
+            pt
         } else if pde & PS != 0 {
             let pt = page_alloc();
             let region = va & !(BIG - 1);
@@ -446,9 +460,18 @@ unsafe fn pte4k(cr3: u64, va: u64) -> *mut u64 {
     }
 }
 
+unsafe fn map_user(cr3: u64, va: u64, pa: u64) {
+    if va & (PAGE - 1) != 0 || pa & (PAGE - 1) != 0 {
+        spawn_fail(6);
+    }
+    unsafe {
+        pte4k(cr3, va).write_volatile(pa | P | RW | US);
+    }
+}
+
 unsafe fn grant_user(cr3: u64, va: u64) {
     unsafe {
-        pte4k(cr3, va).write_volatile(va | P | RW | US);
+        map_user(cr3, va, va);
     }
 }
 
@@ -460,8 +483,14 @@ unsafe fn unmap_page(cr3: u64, va: u64) {
 
 /// Clone the kernel map, give `spark` and a 64 KiB cup U/S 4K leaves, shut
 /// a guard page, keep kernel 2M supervisor. Verifies before return.
+/// Raw nasm sparks identity-map (`va_base == spark`, `entry == spark`).
+/// A Gleam ELF maps `va_base` onto the pool run; `entry` is `e_entry`.
 pub fn place_spark(spark: u64, spark_len: u64) -> SparkRealm {
-    if spark_len == 0 || spark & (PAGE - 1) != 0 {
+    place_spark_at(spark, spark_len, spark, spark)
+}
+
+pub fn place_spark_at(spark: u64, spark_len: u64, va_base: u64, entry: u64) -> SparkRealm {
+    if spark_len == 0 || spark & (PAGE - 1) != 0 || va_base & (PAGE - 1) != 0 {
         spawn_fail(6);
     }
     let kcr3 = unsafe { core::ptr::addr_of!(KERNEL_CR3).read() };
@@ -486,7 +515,7 @@ pub fn place_spark(spark: u64, spark_len: u64) -> SparkRealm {
         (cup_base as *mut u64).write_volatile(CANARY);
         let mut p = 0u64;
         while p < np {
-            grant_user(cr3, spark + p * PAGE);
+            map_user(cr3, va_base + p * PAGE, spark + p * PAGE);
             p += 1;
         }
         let mut c = 0u64;
@@ -499,7 +528,7 @@ pub fn place_spark(spark: u64, spark_len: u64) -> SparkRealm {
     let mut fail = 0u64;
     let mut p = 0u64;
     while p < np {
-        let e = leaf_entry(cr3, spark + p * PAGE);
+        let e = leaf_entry(cr3, va_base + p * PAGE);
         if e & (P | US) != (P | US) || pte_phys(e) != spark + p * PAGE {
             fail = 6;
         }
@@ -533,6 +562,7 @@ pub fn place_spark(spark: u64, spark_len: u64) -> SparkRealm {
         spark_len,
         cup_base,
         guard,
+        entry,
     }
 }
 

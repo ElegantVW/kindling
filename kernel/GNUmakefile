@@ -15,7 +15,7 @@ endif
 NONE_DIR := target/$(RUST_TARGET)/$(RUST_PROFILE_SUBDIR)
 UEFI_DIR := target/$(UEFI_TARGET)/$(RUST_PROFILE_SUBDIR)
 
-.PHONY: all limine-elf fw-bin efi efi-leaf efi-tale clean
+.PHONY: all limine-elf fw-bin efi efi-leaf efi-tale gleam-bin clean
 
 all: limine-elf
 
@@ -68,6 +68,11 @@ leaf-bin:
 		$(CARGO) build --target $(RUST_TARGET) --bin fae-kernel-fw --features fw-link,house-test,leaf-test --profile $(RUST_PROFILE)
 	$(OBJCOPY) -O binary $(NONE_DIR)/fae-kernel-fw kernel.leaf.bin
 
+gleam-bin:
+	RUSTFLAGS="-C relocation-model=static" \
+		$(CARGO) build --target $(RUST_TARGET) --bin fae-kernel-fw --features fw-link,house-test,gleam-test --profile $(RUST_PROFILE)
+	$(OBJCOPY) -O binary $(NONE_DIR)/fae-kernel-fw kernel.gleam.bin
+
 efi:
 	$(CARGO) build --target $(UEFI_TARGET) --bin cerne-efi --features efi --profile $(RUST_PROFILE)
 	cp -v $(UEFI_DIR)/cerne-efi.efi BOOTX64.EFI
@@ -82,4 +87,4 @@ efi-tale:
 
 clean:
 	$(CARGO) clean
-	rm -f kernel kernel.fw.bin kernel.trap.bin kernel.house.bin kernel.ring3.bin kernel.reclaim.bin kernel.tale.bin kernel.spawn.bin kernel.ingle.bin kernel.leaf.bin BOOTX64.EFI BOOTX64.LEAF.EFI BOOTX64.TALE.EFI
+	rm -f kernel kernel.fw.bin kernel.trap.bin kernel.house.bin kernel.ring3.bin kernel.reclaim.bin kernel.tale.bin kernel.spawn.bin kernel.ingle.bin kernel.leaf.bin kernel.gleam.bin BOOTX64.EFI BOOTX64.LEAF.EFI BOOTX64.TALE.EFI

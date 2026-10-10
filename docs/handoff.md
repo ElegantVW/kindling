@@ -16,6 +16,14 @@ Bowl of unused names: [lore/fae-names.md](lore/fae-names.md) (research dataset).
 
 ---
 
+## 2026-10-10 — Gleed — G55 Gleam ELF (rustc spark on our gate)
+
+- Did: Spawn takes a Gleam ELF64 `ET_EXEC` as well as raw `nasm -f bin`. `place_spark_at` maps the spark's own VA onto a pool run; cup stays identity. Tiny `spark/gleam` rustc `no_std` hello writes `the rust is lit` then smoors. ingle/keeper stay 64 KiB raw. `grant`/`flush` stay shut.
+- Proof: `make below` gleam-elf greps `kindling: gleam ok`, `the rust is lit`, `kindling: gleam exit 0`. Raw spawn/splanc/ingle still green.
+- Git: this tree, local. No push.
+- Next: `flush` glass, then grow a leaf, then a first tiny TUI on the below stack.
+- Do not: Linux ELF; PIE/`ET_DYN`; open `grant`/`flush`; wax KINDLOG; a new V; push.
+
 ## 2026-10-05 — Gleed — EFI GetProtocol (live-iron hang, no gate change)
 
 - Did: Live IdeaPad 3 15ITL6 (Secure Boot off, USB FAT) froze after `cerne-efi`

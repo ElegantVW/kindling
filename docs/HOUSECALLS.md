@@ -24,7 +24,7 @@ Swift, purposeful, direct — no noise. Unknown refuses, never silently succeeds
 | 2 | `write` | `rdi` = fd, `rsi` = buf, `rdx` = len | bytes or `-errno` | done on fd 1/2 serial **and** the glass (VGA text / GOP blit); other fd → `-EPERM`; len capped 1 MiB; null buf → `-EPERM` |
 | 3 | `sleep` | `rdi` = ms | `0` | done: TSC deadline after the well (HPET or polled PIT). BIOS may `hlt` on IRQ0. Dead clock returns at once (`no tick`) |
 | 4 | `time` | — | ms | done: milliseconds from calibrated TSC when the clock is live; PIT ticks if TSC never armed; raw `rdtsc` only when both are dark |
-| 5 | `spawn` | `rdi` = name | last word or `-errno` | done (named spark onto private pages + own cup + own CR3; cairn first, then a live FAT volume's **root** by the same Gleam name). Kindles, then returns the spark's last word when it smoors. One spark at a time — a live Light → `-EAGAIN`. Guest `#UD`/`#PF`/`#GP` smoors with `-EIO` (`the spark went out`); never resumes at the fault RIP. null/empty/slashy/oversize → `-EPERM`; empty or bigger than 64 KiB → `-EPERM`; no cairn and no volume → `-ENODEV`; missing → `-ENOENT`; bad chain → `-EIO`. Flat `nasm -f bin` first; ELF later. |
+| 5 | `spawn` | `rdi` = name | last word or `-errno` | done (named spark onto private pages + own cup + own CR3; cairn first, then a live FAT volume's **root** by the same Gleam name). Kindles, then returns the spark's last word when it smoors. One spark at a time — a live Light → `-EAGAIN`. Guest `#UD`/`#PF`/`#GP` smoors with `-EIO` (`the spark went out`); never resumes at the fault RIP. null/empty/slashy/oversize → `-EPERM`; empty raw or bigger than 64 KiB → `-EPERM`; Gleam ELF bigger than 256 KiB or not `ET_EXEC` → `-EPERM`; no cairn and no volume → `-ENODEV`; missing → `-ENOENT`; bad chain → `-EIO`. Flat `nasm -f bin` (64 KiB, identity) and Gleam ELF64 `ET_EXEC` (256 KiB, own VA, not a Linux ABI). |
 | 6 | `grant` | — | `-EAGAIN` | shut (needs capabilities) |
 | 7 | `flush` | — | `-EAGAIN` | shut (needs Lantern framebuffer) |
 | 8 | `glean` | `rdi` = name, `rsi` = buf, `rdx` = len | bytes or `-errno` | done (cairn leaves first; book names `hands`/`twin`/`hand` skip the cairn when a KINDLOG slice is named, then KINDLOG when live; a named slice that is not live is wax for those names (`-ENOENT`), never FAT. Other names, if missing from the cairn, the FAT volume's **root** by the same Gleam name, 1–64, no `/`. FAT is the medium for those — no 8.3 in the house call. LFN is exact case and wins (`leaf` is not the 8.3 `LEAF` page). 8.3-only aliases fold. Missing → `-ENOENT`; no cairn and no volume → `-ENODEV`; bad xor / bad chain → `-EIO`; bad args → `-EPERM`. Cap 1 MiB. Read only.) |
@@ -65,6 +65,7 @@ private CR3: `kindling: spawn ok`, ember kindles `wick`, the second-leaf,
 `stayed`, `gleam exit 0`. Packed with `splanc` instead, ember kindles that
 `ud2`: `kindling: trap 6`, `the spark went out`, `gleam exit 1` — `stayed`
 is a lie.
+Feature `gleam-test` looses a rustc spark: `kindling: gleam ok`, `the rust is lit`, `gleam exit 0`.
 Feature `ingle-test` looses `ingle`: `kindling: ingle ok`, the spark writes
 `ingle`, kindles `keeper` when that spark is present, greets an inked `hand`
 after last word 0, `read` waits: Enter yields `the fire is lit`, `r` recasts,

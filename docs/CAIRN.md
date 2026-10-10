@@ -109,16 +109,20 @@ FAT16 still re-inks only.
 
 Sparks run from a private pool copy, never in place: a spark's buf lives
 inside its own record, and running in place lets its writes perturb the image
-the next boot verifies — the floor must be its own (64 KiB law, contiguity
-asserted, `tale FAIL scattered` / `spawn FAIL 4` otherwise). `spawn` (house
+the next boot verifies — the floor must be its own (contiguity asserted,
+`tale FAIL scattered` / `spawn FAIL 4` otherwise). `spawn` (house
 call 5) copies the named spark the same way from the cairn first (kind 1);
 when that name is missing and a FAT volume is live, it gathers from the
-volume's **root** by the same Gleam name (cap 64 KiB, exact size, no
-truncated spark). Then it clones the kernel map onto a new CR3, strips U/S
-from kernel leaves, and grants user only the spark and a 64 KiB cup (one
-guard page not-present). One Light: kindle the spark; when it smoors,
-`spawn` returns the last word. Nested spawn is `-EAGAIN`. ELF is a format
-later, not a Linux ABI. FAT is the medium — DMA dest stays the MSC page.
+volume's **root** by the same Gleam name (exact size, no truncated spark).
+Raw `nasm -f bin` stays 64 KiB and identity-mapped (entry at offset 0).
+A Gleam ELF64 little-endian x86_64 `ET_EXEC` (our headers, house calls,
+not a Linux ABI, no `PT_INTERP`) may be 256 KiB; Kindling maps its
+`PT_LOAD` at the spark's own VA (1 GiB, so it never sits on Kindling's
+cup at 4 MiB) and enters at `e_entry`. Then it clones the kernel map onto
+a new CR3, strips U/S from kernel leaves, and grants user only the spark
+and a 64 KiB cup (one guard page not-present). One Light: kindle the spark;
+when it smoors, `spawn` returns the last word. Nested spawn is `-EAGAIN`.
+FAT is the medium — DMA dest stays the MSC page.
 
 A panic mid-stow leaves the disk half-inked (sector new, KMAP old) — the
 next boot then refuses `no-cairn` instead of reading corrupt. That refusal
@@ -139,6 +143,7 @@ is the design working.
 - **first-leaf** — the first leaf, packed at cast time.
 - **wick** — the second spark: tells `second-leaf` from its own cup, then exits.
 - **ember** — the live coal (G30): kindles `wick`, writes `stayed`, exits with wick's last word. Packed on the spawn-test image. G31: kindles `splanc` when that spark is packed; spawn refuses, ember exits 1.
+- **gleam** — G55 rustc `no_std` spark. House `write` then `exit 0`. Packed on the gleam-test image. Proof line `the rust is lit`.
 - **splanc** — a spark that does not catch (G31). Irish *splanc*. `ud2`; the house names the miss.
 - **second-leaf** — `the cup is its own`.
 - **ingle** — the greeter spark, the desktop (G34). Writes its name, kindles `keeper` when present, greets an inked `hand` after last word 0, then Enter lights the fire, `r` recasts, `q` smoors. After the fire is lit, kindles `leaf` once, writes `the light remains` when that spark smoors, waits for `q` (smoor) or `r` (recast, house `cast`). Packed on `make image` with `leaf`, `LEAF`, `keeper`, wax `hand`, and wax `hands`/`twin`; EFI copies the blob from `EFI/BOOT/CAIRN`. A miss of `leaf` or `keeper` is quiet. A last word other than 0 does not light the fire.

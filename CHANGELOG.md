@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## gleam-g55 (2026-10-10)
+
+- Kindling loads a Gleam ELF64 `ET_EXEC` (our headers, house calls, not a Linux ABI). Raw nasm sparks stay 64 KiB and identity-mapped. The rustc spark lives at 1 GiB so it never sits on Kindling's cup at 4 MiB. Proof: `kindling: gleam ok` / `the rust is lit` / `gleam exit 0`. `make below` += gleam-elf. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only. `grant` / `flush` stay shut.
+
 ## quiet-g54 (2026-10-10)
 
 - Host opened both KINDLOG seals; twins match; `even` is live with salt and verifier. AES wraps the roster. The word is a SHA-256 inside that plaintext. Iron `the ink will not hold` after `speak the word` was the greeting WRITE (`hand`), after the word already matched. `ink_hand` miss stays quiet. `the ink will not hold` only when the seals fail to land. Plant EFI only — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.

@@ -17,7 +17,7 @@ OVMF_CODE ?= $(firstword $(wildcard \
 	/usr/share/OVMF/OVMF_CODE.fd))
 
 .PHONY: all kernel iso qemu serial serial-fw serial-uefi qemu-uefi-limine fw efi clean distclean
-.PHONY: help flint steel tinder hearth kindle hearth-see audit below below-ten image test
+.PHONY: help flint steel tinder hearth kindle hearth-see audit below below-ten image test gleam-spark
 
 help:
 	@echo "Kindling — how one lights it"
@@ -46,6 +46,12 @@ tinder: flint
 hearth: serial-fw
 kindle: serial-fw
 image: $(IMAGE)
+spark/gleam.elf: spark/gleam/src/main.rs spark/gleam/gleam.ld spark/gleam/Cargo.toml spark/gleam/.cargo/config.toml
+	cd spark/gleam && $(CARGO) build --release --target x86_64-unknown-none
+	cp -v spark/gleam/target/x86_64-unknown-none/release/gleam $@
+
+gleam-spark: spark/gleam.elf
+
 $(IMAGE): flint steel $(LD_BIN) scripts/mkimg.py spark/ingle.asm spark/leaf.asm spark/keeper.asm spark/LEAF.txt
 	$(NASM) -f bin -o spark/ingle.bin spark/ingle.asm
 	$(NASM) -f bin -o spark/leaf.bin spark/leaf.asm
@@ -73,6 +79,7 @@ test:
 	sh scripts/test-vm.sh tale
 	sh scripts/test-vm.sh spawn
 	sh scripts/test-vm.sh splanc
+	sh scripts/test-vm.sh gleam
 	sh scripts/test-vm.sh ingle
 	sh scripts/test-vm.sh ingle-leaf
 	sh scripts/test-vm.sh ingle-keeper

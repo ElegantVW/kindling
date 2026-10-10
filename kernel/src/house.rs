@@ -315,6 +315,7 @@ static mut LIGHT: Light = Light {
         spark_len: 0,
         cup_base: 0,
         guard: 0,
+        entry: 0,
     },
 };
 
@@ -392,7 +393,7 @@ fn save_light(frame: u64) {
 
 fn house_kindle_enter() -> ! {
     let r = unsafe { addr_of!(LIGHT).read_volatile().child };
-    enter_user_in(r.spark, r.cup_top, r.cr3);
+    enter_user_in(r.entry, r.cup_top, r.cr3);
 }
 
 fn house_smoor_enter() -> ! {

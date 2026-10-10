@@ -1,0 +1,20 @@
+[package]
+name = "gleam"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[[bin]]
+name = "gleam"
+path = "src/main.rs"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+lto = false
+codegen-units = 1
+strip = false
+
+[profile.dev]
+panic = "abort"
+opt-level = "s"

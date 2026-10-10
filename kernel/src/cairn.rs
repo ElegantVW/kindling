@@ -429,6 +429,210 @@ fn spawn_fail(n: u64) -> ! {
     hcf();
 }
 
+const SPARK_RAW_MAX: u64 = 65536;
+const SPARK_ELF_MAX: u64 = 256 * 1024;
+const ELF_MAGIC0: u8 = 0x7f;
+const ELFCLASS64: u8 = 2;
+const ELFDATA2LSB: u8 = 1;
+const ET_EXEC: u16 = 2;
+const EM_X86_64: u16 = 62;
+const PT_LOAD: u32 = 1;
+const PT_INTERP: u32 = 3;
+const PT_DYNAMIC: u32 = 2;
+const PH_MAX: usize = 16;
+const EHDR: u64 = 64;
+const PHDR: u64 = 56;
+/// Gleam ELF floor: 1 GiB. Kindling's cup sits at 4 MiB; they do not share a floor.
+const USER_VA_LO: u64 = 0x4000_0000;
+const USER_VA_HI: u64 = 0x8000_0000;
+
+fn b8(src: u64, off: u64) -> u8 {
+    unsafe { ((src + off) as *const u8).read_volatile() }
+}
+
+fn b16(src: u64, off: u64) -> u16 {
+    u16::from_le_bytes([b8(src, off), b8(src, off + 1)])
+}
+
+fn b32(src: u64, off: u64) -> u32 {
+    u32::from_le_bytes([
+        b8(src, off),
+        b8(src, off + 1),
+        b8(src, off + 2),
+        b8(src, off + 3),
+    ])
+}
+
+fn b64(src: u64, off: u64) -> u64 {
+    u64::from_le_bytes([
+        b8(src, off),
+        b8(src, off + 1),
+        b8(src, off + 2),
+        b8(src, off + 3),
+        b8(src, off + 4),
+        b8(src, off + 5),
+        b8(src, off + 6),
+        b8(src, off + 7),
+    ])
+}
+
+fn is_elf(src: u64, len: u64) -> bool {
+    len >= 4
+        && b8(src, 0) == ELF_MAGIC0
+        && b8(src, 1) == b'E'
+        && b8(src, 2) == b'L'
+        && b8(src, 3) == b'F'
+}
+
+#[derive(Clone, Copy)]
+struct PhLoad {
+    vaddr: u64,
+    offset: u64,
+    filesz: u64,
+    memsz: u64,
+}
+
+fn load_raw(src: u64, len: u64) -> Result<crate::mm::SparkRealm, u64> {
+    if len == 0 || len > SPARK_RAW_MAX {
+        return Err(EPERM);
+    }
+    let Some(dst) = copy_out(src, len) else {
+        spawn_fail(4);
+    };
+    Ok(crate::mm::place_spark(dst, len))
+}
+
+fn load_elf(src: u64, len: u64) -> Result<crate::mm::SparkRealm, u64> {
+    if !(EHDR..=SPARK_ELF_MAX).contains(&len) {
+        return Err(EPERM);
+    }
+    if b8(src, 4) != ELFCLASS64 || b8(src, 5) != ELFDATA2LSB || b8(src, 6) != 1 {
+        return Err(EPERM);
+    }
+    if b16(src, 16) != ET_EXEC || b16(src, 18) != EM_X86_64 || b32(src, 20) != 1 {
+        return Err(EPERM);
+    }
+    if b16(src, 52) != EHDR as u16 || b16(src, 54) != PHDR as u16 {
+        return Err(EPERM);
+    }
+    let entry = b64(src, 24);
+    let phoff = b64(src, 32);
+    let phnum = b16(src, 56) as u64;
+    if phnum == 0 || phnum > PH_MAX as u64 {
+        return Err(EPERM);
+    }
+    let ph_bytes = phnum.saturating_mul(PHDR);
+    let Some(ph_end) = phoff.checked_add(ph_bytes) else {
+        return Err(EPERM);
+    };
+    if ph_end > len {
+        return Err(EPERM);
+    }
+    let mut loads = [PhLoad {
+        vaddr: 0,
+        offset: 0,
+        filesz: 0,
+        memsz: 0,
+    }; PH_MAX];
+    let mut nload = 0usize;
+    let mut i = 0u64;
+    while i < phnum {
+        let o = phoff + i * PHDR;
+        let p_type = b32(src, o);
+        if p_type == PT_INTERP || p_type == PT_DYNAMIC {
+            return Err(EPERM);
+        }
+        if p_type == PT_LOAD {
+            if nload >= PH_MAX {
+                return Err(EPERM);
+            }
+            let vaddr = b64(src, o + 16);
+            let offset = b64(src, o + 8);
+            let filesz = b64(src, o + 32);
+            let memsz = b64(src, o + 40);
+            if filesz > memsz {
+                return Err(EPERM);
+            }
+            let Some(file_end) = offset.checked_add(filesz) else {
+                return Err(EPERM);
+            };
+            if filesz != 0 && file_end > len {
+                return Err(EPERM);
+            }
+            let Some(va_end) = vaddr.checked_add(memsz) else {
+                return Err(EPERM);
+            };
+            if vaddr < USER_VA_LO || va_end > USER_VA_HI {
+                return Err(EPERM);
+            }
+            loads[nload] = PhLoad {
+                vaddr,
+                offset,
+                filesz,
+                memsz,
+            };
+            nload += 1;
+        }
+        i += 1;
+    }
+    if nload == 0 {
+        return Err(EPERM);
+    }
+    let mut min_va = u64::MAX;
+    let mut max_va = 0u64;
+    let mut n = 0usize;
+    while n < nload {
+        if loads[n].vaddr < min_va {
+            min_va = loads[n].vaddr;
+        }
+        let end = loads[n].vaddr + loads[n].memsz;
+        if end > max_va {
+            max_va = end;
+        }
+        n += 1;
+    }
+    if min_va >= max_va {
+        return Err(EPERM);
+    }
+    let va_page = min_va & !(4096 - 1);
+    let end_page = align_up(max_va, 4096);
+    let span = end_page - va_page;
+    if span == 0 || span > SPARK_ELF_MAX {
+        return Err(EPERM);
+    }
+    if entry < va_page || entry >= end_page {
+        return Err(EPERM);
+    }
+    let Some(dst) = take_pages(span) else {
+        spawn_fail(4);
+    };
+    unsafe {
+        core::ptr::write_bytes(dst as *mut u8, 0, span as usize);
+    }
+    let mut n = 0usize;
+    while n < nload {
+        let rel = loads[n].vaddr - va_page;
+        let mut k = 0u64;
+        while k < loads[n].filesz {
+            let b = b8(src, loads[n].offset + k);
+            unsafe {
+                ((dst + rel + k) as *mut u8).write_volatile(b);
+            }
+            k += 1;
+        }
+        n += 1;
+    }
+    Ok(crate::mm::place_spark_at(dst, span, va_page, entry))
+}
+
+fn load_spark(src: u64, len: u64) -> Result<crate::mm::SparkRealm, u64> {
+    if is_elf(src, len) {
+        load_elf(src, len)
+    } else {
+        load_raw(src, len)
+    }
+}
+
 /// Contiguous pool run for a spark. None = scattered (run returned to the pool).
 fn take_pages(len: u64) -> Option<u64> {
     if len == 0 {
@@ -466,15 +670,13 @@ fn copy_out(src: u64, len: u64) -> Option<u64> {
 }
 
 fn kindle_bytes(src: u64, len: u64) -> u64 {
-    if len == 0 || len > 65536 {
-        return err(EPERM);
+    match load_spark(src, len) {
+        Ok(realm) => {
+            crate::house::kindle(realm);
+            0
+        }
+        Err(e) => err(e),
     }
-    let Some(dst) = copy_out(src, len) else {
-        spawn_fail(4);
-    };
-    let realm = crate::mm::place_spark(dst, len);
-    crate::house::kindle(realm);
-    0
 }
 
 fn spawn_volume(name: &[u8], had_cairn: bool) -> u64 {
@@ -485,30 +687,39 @@ fn spawn_volume(name: &[u8], had_cairn: bool) -> u64 {
     if (n as i64) < 0 {
         return n;
     }
-    if n == 0 || n > 65536 {
+    if n == 0 || n > SPARK_ELF_MAX {
         return err(EPERM);
     }
-    let Some(dst) = take_pages(n) else {
+    let Some(tmp) = take_pages(n) else {
         spawn_fail(4);
     };
-    let got = crate::usb::load_fat(name, dst, n);
+    let got = crate::usb::load_fat(name, tmp, n);
     if got != n {
-        crate::mm::release_run(dst, n);
+        crate::mm::release_run(tmp, n);
         if (got as i64) < 0 {
             return got;
         }
         return err(EIO);
     }
-    let realm = crate::mm::place_spark(dst, n);
+    let realm = match load_spark(tmp, n) {
+        Ok(r) => r,
+        Err(e) => {
+            crate::mm::release_run(tmp, n);
+            return err(e);
+        }
+    };
+    crate::mm::release_run(tmp, n);
     crate::house::kindle(realm);
     0
 }
 
 /// House call 5: named spark onto private pages, own cup, own CR3.
 /// Cairn first (kind 1). If that name is missing (or there is no cairn) and
-/// a FAT volume is live, the volume's root by the same Gleam name, cap 64 KiB,
-/// raw `nasm -f bin`. Kindles; when it smoors, this call returns the last
-/// word in rax. One spark at a time — a live Light is `-EAGAIN`.
+/// a FAT volume is live, the volume's root by the same Gleam name. Raw
+/// `nasm -f bin` stays 64 KiB, identity-mapped. A Gleam ELF64 ET_EXEC (not
+/// a Linux ABI) may be 256 KiB, mapped at its own VA. Kindles; when it
+/// smoors, this call returns the last word in rax. One spark at a time —
+/// a live Light is `-EAGAIN`.
 pub fn spawn(name_ptr: u64) -> u64 {
     let (name, nl) = match take_name(name_ptr) {
         Ok(v) => v,
@@ -542,15 +753,12 @@ pub fn run_spawn(cup_top: u64) -> ! {
             Err(_) => spawn_fail(2),
         }
     };
-    if len == 0 || len > 65536 {
-        spawn_fail(3);
-    }
-    let Some(dst) = copy_out(src, len) else {
-        spawn_fail(4);
+    let realm = match load_spark(src, len) {
+        Ok(r) => r,
+        Err(_) => spawn_fail(3),
     };
-    let realm = crate::mm::place_spark(dst, len);
     serial_print("kindling: spawn ok\n");
-    crate::house::enter_user_in(realm.spark, realm.cup_top, realm.cr3);
+    crate::house::enter_user_in(realm.entry, realm.cup_top, realm.cr3);
 }
 
 /// Loose `leaf`: gleans `LEAF`, writes the page, waits for `q` or `r`.
@@ -567,15 +775,12 @@ pub fn run_leaf(cup_top: u64) -> ! {
             Err(_) => spawn_fail(2),
         }
     };
-    if len == 0 || len > 65536 {
-        spawn_fail(3);
-    }
-    let Some(dst) = copy_out(src, len) else {
-        spawn_fail(4);
+    let realm = match load_spark(src, len) {
+        Ok(r) => r,
+        Err(_) => spawn_fail(3),
     };
-    let realm = crate::mm::place_spark(dst, len);
     serial_print("kindling: leaf ok\n");
-    crate::house::enter_user_in(realm.spark, realm.cup_top, realm.cr3);
+    crate::house::enter_user_in(realm.entry, realm.cup_top, realm.cr3);
 }
 
 /// Loose `ingle`: greeter spark, private CR3 + cup, waits for a key.
@@ -592,15 +797,12 @@ pub fn run_ingle(cup_top: u64) -> ! {
             Err(_) => spawn_fail(2),
         }
     };
-    if len == 0 || len > 65536 {
-        spawn_fail(3);
-    }
-    let Some(dst) = copy_out(src, len) else {
-        spawn_fail(4);
+    let realm = match load_spark(src, len) {
+        Ok(r) => r,
+        Err(_) => spawn_fail(3),
     };
-    let realm = crate::mm::place_spark(dst, len);
     serial_print("kindling: ingle ok\n");
-    crate::house::enter_user_in(realm.spark, realm.cup_top, realm.cr3);
+    crate::house::enter_user_in(realm.entry, realm.cup_top, realm.cr3);
 }
 
 /// Paved path: light `ingle` when the cairn has it. Missing cairn or spark
@@ -608,21 +810,39 @@ pub fn run_ingle(cup_top: u64) -> ! {
 #[allow(dead_code)]
 pub fn light_ingle(cup_top: u64) -> ! {
     crate::gdt::set_kernel_stack(cup_top);
-    if let Some(c) = open() {
-        if let Ok((src, len)) = find(&c, b"ingle", 1) {
-            if len > 0 && len <= 65536 {
-                if let Some(dst) = copy_out(src, len) {
-                    let realm = crate::mm::place_spark(dst, len);
-                    serial_print("kindling: ingle ok\n");
-                    crate::house::enter_user_in(realm.spark, realm.cup_top, realm.cr3);
-                }
-            }
-        }
+    if let Some(c) = open()
+        && let Ok((src, len)) = find(&c, b"ingle", 1)
+        && let Ok(realm) = load_spark(src, len)
+    {
+        serial_print("kindling: ingle ok\n");
+        crate::house::enter_user_in(realm.entry, realm.cup_top, realm.cr3);
     }
     serial_print("kindling: no ingle\n");
     let msg = b"no ingle\n";
     crate::glass::put_bytes(msg.as_ptr(), msg.len() as u64);
     hcf();
+}
+
+/// Loose rustc Gleam ELF: verify, map at its own VA, enter at `e_entry`.
+/// Never returns (the spark `write`s then `exit`s).
+#[cfg(feature = "gleam-test")]
+pub fn run_gleam(cup_top: u64) -> ! {
+    crate::gdt::set_kernel_stack(cup_top);
+    let (src, len) = {
+        let Some(c) = open() else {
+            spawn_fail(1);
+        };
+        match find(&c, b"gleam", 1) {
+            Ok(v) => v,
+            Err(_) => spawn_fail(2),
+        }
+    };
+    let realm = match load_spark(src, len) {
+        Ok(r) => r,
+        Err(_) => spawn_fail(3),
+    };
+    serial_print("kindling: gleam ok\n");
+    crate::house::enter_user_in(realm.entry, realm.cup_top, realm.cr3);
 }
 
 /// Loose the `tale` spark: verify, copy it out of the cairn onto private

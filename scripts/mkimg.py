@@ -17,7 +17,7 @@ then lays the cairn at 0x100000 the same way.
             the 'KNDL' check is the one that catches that
   --leaf name=path    lay a leaf (data) in the cairn (repeatable, name <=64,
                       no '/' - flat grove, house voice)
-  --spark name=path   lay a spark (CPL3 flat binary, entry at offset 0)
+  --spark name=path   lay a spark (raw nasm -f bin, or a Gleam ELF64 ET_EXEC)
   --cairn-out path    also write the cairn blob (ESP / EFI/BOOT/CAIRN)
 """
 import argparse

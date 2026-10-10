@@ -275,21 +275,29 @@ unsafe extern "C" fn after_cup() -> ! {
     serial_print(" MiB · stack ");
     serial_u64(unsafe { core::ptr::addr_of!(CUP_KIB).read() });
     serial_print(" KiB cup\n");
-    #[cfg(feature = "ingle-test")]
+    #[cfg(feature = "gleam-test")]
+    crate::cairn::run_gleam(unsafe { core::ptr::addr_of!(CUP_TOP).read() });
+    #[cfg(all(feature = "ingle-test", not(feature = "gleam-test")))]
     crate::cairn::run_ingle(unsafe { core::ptr::addr_of!(CUP_TOP).read() });
-    #[cfg(all(feature = "leaf-test", not(feature = "ingle-test")))]
+    #[cfg(all(
+        feature = "leaf-test",
+        not(feature = "ingle-test"),
+        not(feature = "gleam-test")
+    ))]
     crate::cairn::run_leaf(unsafe { core::ptr::addr_of!(CUP_TOP).read() });
     #[cfg(all(
         feature = "spawn-test",
         not(feature = "ingle-test"),
-        not(feature = "leaf-test")
+        not(feature = "leaf-test"),
+        not(feature = "gleam-test")
     ))]
     crate::cairn::run_spawn(unsafe { core::ptr::addr_of!(CUP_TOP).read() });
     #[cfg(all(
         feature = "tale-test",
         not(feature = "spawn-test"),
         not(feature = "ingle-test"),
-        not(feature = "leaf-test")
+        not(feature = "leaf-test"),
+        not(feature = "gleam-test")
     ))]
     crate::cairn::run_tale(unsafe { core::ptr::addr_of!(CUP_TOP).read() });
     #[cfg(all(
@@ -297,7 +305,8 @@ unsafe extern "C" fn after_cup() -> ! {
         not(feature = "tale-test"),
         not(feature = "spawn-test"),
         not(feature = "ingle-test"),
-        not(feature = "leaf-test")
+        not(feature = "leaf-test"),
+        not(feature = "gleam-test")
     ))]
     crate::house::enter_init(unsafe { core::ptr::addr_of!(CUP_TOP).read() });
     #[cfg(not(any(
@@ -305,7 +314,8 @@ unsafe extern "C" fn after_cup() -> ! {
         feature = "tale-test",
         feature = "spawn-test",
         feature = "ingle-test",
-        feature = "leaf-test"
+        feature = "leaf-test",
+        feature = "gleam-test"
     )))]
     crate::cairn::light_ingle(unsafe { core::ptr::addr_of!(CUP_TOP).read() });
 }

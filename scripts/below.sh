@@ -239,6 +239,36 @@ make steel >/dev/null
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --kernel kernel/kernel.fw.bin --out kindling.img
 
+echo "---- gleam-elf ----"
+make spark/gleam.elf
+make -C kernel gleam-bin
+python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
+  --kernel kernel/kernel.gleam.bin --out kindling-gleam.img \
+  --spark gleam=spark/gleam.elf
+got=$(timeout --foreground --signal=KILL 3 "$QEMU" -M pc -m 256M \
+  -bios "$FW" -drive if=ide,format=raw,file=kindling-gleam.img \
+  -display none -serial stdio -no-reboot -no-shutdown 2>/dev/null | tr -d '\r' || true)
+printf '%s\n' "$got" | grep -F -q "kindling: gleam ok" || {
+  echo "FAIL gleam-elf"
+  echo "$got" | tail -12
+  exit 1
+}
+printf '%s\n' "$got" | grep -F -q "the rust is lit" || {
+  echo "FAIL gleam-elf (no rust line)"
+  echo "$got" | tail -12
+  exit 1
+}
+printf '%s\n' "$got" | grep -F -q "kindling: gleam exit 0" || {
+  echo "FAIL gleam-elf (no gleam exit 0)"
+  echo "$got" | tail -12
+  exit 1
+}
+echo "ok   gleam-elf"
+# restore the paved kernel for later steps
+make steel >/dev/null
+python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
+  --kernel kernel/kernel.fw.bin --out kindling.img
+
 echo "---- ingle ----"
 nasm -f bin -o spark/ingle.bin spark/ingle.asm
 make -C kernel ingle-bin

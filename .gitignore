@@ -9,6 +9,7 @@
 /kernel/kernel.spawn.bin
 /kernel/kernel.ingle.bin
 /kernel/kernel.leaf.bin
+/kernel/kernel.gleam.bin
 /kernel/BOOTX64.EFI
 /kernel/BOOTX64.LEAF.EFI
 /kernel/BOOTX64.TALE.EFI
@@ -16,6 +17,8 @@
 /fw/font8x16.bin
 /ld/cerne-ld.bin
 /spark/*.bin
+/spark/gleam.elf
+/spark/gleam/target/
 /kindling.img
 /kindling-*.img
 /esp/
