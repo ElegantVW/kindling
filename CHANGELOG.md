@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## ink-g50 (2026-10-10)
+
+- Iron G49 hung ~90s after the second word, then `the ink will not hold` / `the book is split` / `kindling: gleam exit 1`. LBA 65 was a USB `USBC` TEST UNIT READY packet, not a seal: after a WRITE the kernel sent TUR while the Databar still wanted 512 data bytes, and that 31-byte CBW was programmed to flash. Quiet path: WRITE, wait 300 ms, READ (1 s). No FUA, no SYNCHRONIZE CACHE, no class reset until the WRITE is retired. `roll` retries a dead glean three times. KINDLING `85C7-AA81` only.
+
 ## ink-g49 (2026-10-10)
 
 - Iron G48 still painted `the ink will not hold` / `the book is split` / `kindling: gleam exit 1`. G48 EFI was what booted; KINDLOG LBA 65 was a full 512-byte seal and 66–69 stayed wax. SYNCHRONIZE CACHE (10) stalled the Databar while NAND was still programming, so the reread never came back and `roll` gleaned `-EIO`. That command is gone. After WRITE the kernel waits (10 ms, then 100, then 200) and retries with FUA. A failed bulk transfer stops and resets both MSC pipes (xHCI + Bulk-Only) so the hall can still glean. KINDLING `85C7-AA81` only.

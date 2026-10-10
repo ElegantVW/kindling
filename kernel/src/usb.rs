@@ -626,9 +626,8 @@ fn clear_halt(h: &mut Host, ep: u8) {
     let _ = control(h, h.msc_slot, s, 0, 0, false);
 }
 
-/// Bulk-Only reset + xHCI stop/reset of both MSC pipes. Cheap flash stalls
-/// a READ while NAND is still programming the WRITE we just finished.
-fn heal_bulk(h: &mut Host) {
+/// Stop both MSC pipes and clear halt. Does not send a new CBW.
+fn heal_pipes(h: &mut Host) {
     if h.msc_slot == 0 {
         return;
     }
@@ -638,11 +637,28 @@ fn heal_bulk(h: &mut Host) {
     let id = h.msc_in_dci;
     heal_dci(h, od, out);
     heal_dci(h, id, inn);
+    if od != 0 {
+        clear_halt(h, dci_ep_addr(od));
+    }
+    if id != 0 {
+        clear_halt(h, dci_ep_addr(id));
+    }
+    recover();
+}
+
+/// Last resort: Bulk-Only class reset after the pipes are already stopped.
+fn heal_bulk(h: &mut Host) {
+    heal_pipes(h);
+    if h.msc_slot == 0 {
+        return;
+    }
     let mut s = [0u8; 8];
     s[0] = 0x21;
     s[1] = 0xFF;
     s[4] = h.msc_iface;
     let _ = control(h, h.msc_slot, s, 0, 0, false);
+    let od = h.msc_out_dci;
+    let id = h.msc_in_dci;
     if od != 0 {
         clear_halt(h, dci_ep_addr(od));
     }
@@ -683,11 +699,15 @@ fn control(h: &mut Host, slot: u8, setup: [u8; 8], buf: u64, len: u16, din: bool
     ok
 }
 
-fn wait_xfer(h: &mut Host) -> bool {
-    wait_loop(T_CMD, || {
+fn wait_xfer_ms(h: &mut Host, timeout_ms: u64) -> bool {
+    wait_loop(timeout_ms, || {
         process_events(h);
         h.xfer_seen
     }) && (h.xfer_code == CC_OK || h.xfer_code == CC_SHORT)
+}
+
+fn wait_xfer(h: &mut Host) -> bool {
+    wait_xfer_ms(h, T_CMD)
 }
 
 fn get_desc(h: &mut Host, slot: u8, ty: u8, idx: u8, len: u16) -> bool {
@@ -1064,22 +1084,26 @@ fn msc_max_lun(h: &mut Host, slot: u8, iface: u8) {
     let _ = control(h, slot, s, h.data, 1, true);
 }
 
-fn bulk_out(h: &mut Host, buf: u64, len: u32) -> bool {
+fn bulk_out_ms(h: &mut Host, buf: u64, len: u32, timeout_ms: u64) -> bool {
     let slot = h.msc_slot;
     let dci = h.msc_out_dci;
     let _ = h.bulk_out.enq(buf, len, (TRB_NORMAL << 10) | IOC);
     h.xfer_seen = false;
     doorbell(h, slot as u32, dci as u32);
-    wait_xfer(h)
+    wait_xfer_ms(h, timeout_ms)
 }
 
-fn bulk_in(h: &mut Host, buf: u64, len: u32) -> bool {
+fn bulk_in_ms(h: &mut Host, buf: u64, len: u32, timeout_ms: u64) -> bool {
     let slot = h.msc_slot;
     let dci = h.msc_in_dci;
     let _ = h.bulk_in.enq(buf, len, (TRB_NORMAL << 10) | IOC | ISP);
     h.xfer_seen = false;
     doorbell(h, slot as u32, dci as u32);
-    wait_xfer(h)
+    wait_xfer_ms(h, timeout_ms)
+}
+
+fn bulk_out(h: &mut Host, buf: u64, len: u32) -> bool {
+    bulk_out_ms(h, buf, len, T_CMD)
 }
 
 fn write_cbw(addr: u64, tag: u32, data_len: u32, din: bool, cdb: &[u8]) {
@@ -1101,6 +1125,12 @@ fn write_cbw(addr: u64, tag: u32, data_len: u32, din: bool, cdb: &[u8]) {
 }
 
 fn bot(h: &mut Host, cdb: &[u8], buf: u64, data_len: u32, din: bool) -> bool {
+    bot_ms(h, cdb, buf, data_len, din, T_CMD)
+}
+
+/// One BOT command. A data miss stops the pipes and still reads CSW.
+/// Never sends a new CBW (TUR / class reset) while a WRITE is open.
+fn bot_ms(h: &mut Host, cdb: &[u8], buf: u64, data_len: u32, din: bool, timeout_ms: u64) -> bool {
     let tag = h.msc_tag;
     h.msc_tag = h.msc_tag.wrapping_add(1);
     if h.msc_tag == 0 {
@@ -1108,25 +1138,25 @@ fn bot(h: &mut Host, cdb: &[u8], buf: u64, data_len: u32, din: bool) -> bool {
     }
     write_cbw(h.data, tag, data_len, din && data_len != 0, cdb);
     if !bulk_out(h, h.data, 31) {
-        heal_bulk(h);
+        heal_pipes(h);
         return false;
     }
     let mut data_ok = true;
     if data_len != 0 {
         data_ok = if din {
-            bulk_in(h, buf, data_len)
+            bulk_in_ms(h, buf, data_len, timeout_ms)
         } else {
-            bulk_out(h, buf, data_len)
+            bulk_out_ms(h, buf, data_len, timeout_ms)
         };
         if !data_ok {
-            heal_bulk(h);
+            heal_pipes(h);
         }
     }
     unsafe {
         core::ptr::write_bytes((h.data + MSC_CSW) as *mut u8, 0, 16);
     }
-    if !bulk_in(h, h.data + MSC_CSW, 13) {
-        heal_bulk(h);
+    if !bulk_in_ms(h, h.data + MSC_CSW, 13, timeout_ms) {
+        heal_pipes(h);
         return false;
     }
     let sig = r32(h.data + MSC_CSW);
@@ -1272,9 +1302,8 @@ pub(crate) fn disk_geom() -> Option<(u32, u32)> {
     Some((h.blk, h.n_lba))
 }
 
-/// WRITE(10)+settle+reread one sector. Only KINDLOG data LBAs (not the
-/// superblock, not FAT, not MBR). KINDLING `85C7-AA81` still gates
-/// `msc_write10`.
+/// WRITE(10)+wait+reread one sector. Only KINDLOG data LBAs (not the
+/// superblock, not FAT, not MBR). KINDLING `85C7-AA81` still gates WRITE.
 pub(crate) fn write_kindlog(lba: u32, src: &[u8]) -> bool {
     let Some((start, secs)) = crate::kindlog::slice() else {
         return false;
@@ -1320,10 +1349,10 @@ fn claim_first_fat() -> bool {
     }
 }
 
-fn cdb10(op: u8, lba: u32, blocks: u16, fua: bool) -> [u8; 10] {
+fn cdb10(op: u8, lba: u32, blocks: u16) -> [u8; 10] {
     [
         op,
-        if fua { 0x08 } else { 0 },
+        0,
         (lba >> 24) as u8,
         (lba >> 16) as u8,
         (lba >> 8) as u8,
@@ -1343,7 +1372,7 @@ fn msc_rw(
     blocks: u16,
     blk: u32,
     din: bool,
-    fua: bool,
+    timeout_ms: u64,
 ) -> bool {
     if blocks == 0 || blk == 0 {
         return false;
@@ -1352,20 +1381,20 @@ fn msc_rw(
     if bytes == 0 || bytes as usize > PAGE {
         return false;
     }
-    let cdb = cdb10(op, lba, blocks, fua);
-    bot(h, &cdb, buf, bytes, din)
+    let cdb = cdb10(op, lba, blocks);
+    bot_ms(h, &cdb, buf, bytes, din, timeout_ms)
 }
 
 fn msc_read10(h: &mut Host, lba: u32, buf: u64, blocks: u16, blk: u32) -> bool {
-    msc_rw(h, 0x28, lba, buf, blocks, blk, true, false)
+    msc_rw(h, 0x28, lba, buf, blocks, blk, true, T_CMD)
 }
 
 /// WRITE(10) of `blocks`. Refuses unless this volume is KINDLING `85C7-AA81`.
-fn msc_write10_fua(h: &mut Host, lba: u32, buf: u64, blocks: u16, blk: u32, fua: bool) -> bool {
+fn msc_write10(h: &mut Host, lba: u32, buf: u64, blocks: u16, blk: u32) -> bool {
     if h.vol.vol_id != KINDLING_VOL {
         return false;
     }
-    msc_rw(h, 0x2A, lba, buf, blocks, blk, false, fua)
+    msc_rw(h, 0x2A, lba, buf, blocks, blk, false, T_CMD)
 }
 
 const GLEAN_MAX: u64 = 1 << 20;
@@ -1971,27 +2000,26 @@ fn restore_verify(h: &mut Host) {
     }
 }
 
-/// WRITE(10) the sector already copied into MSC_VERIFY; settle; READ(10) compare.
-/// Five tries. First try is a short wait; later tries FUA and wait for NAND.
-/// A miss heals the bulk pipes so the next `roll` can still glean.
+/// WRITE(10) the sector already copied into MSC_VERIFY; wait; READ(10) compare.
+/// Three tries. No extra SCSI while a WRITE is open. NAND gets 300 ms.
+/// A last-resort class reset runs only after the tries, so `roll` can glean.
 fn commit_prepared(h: &mut Host, lba: u32) -> bool {
     let mut tries = 0u8;
-    while tries < 5 {
+    while tries < 3 {
         restore_verify(h);
-        let fua = tries > 0;
-        let wait = if tries == 0 { 10 } else if tries == 1 { 100 } else { 200 };
-        if msc_write10_fua(h, lba, h.data + MSC_DATA, 1, 512, fua) {
+        if msc_write10(h, lba, h.data + MSC_DATA, 1, 512) {
             recover();
-            settle(h, wait);
-            if msc_rw(h, 0x28, lba, h.data + MSC_DATA, 1, 512, true, fua) && sector_match(h)
+            settle(h, 300);
+            if msc_rw(h, 0x28, lba, h.data + MSC_DATA, 1, 512, true, T_BIOS) && sector_match(h)
             {
                 return true;
             }
         }
-        let _ = msc_ready(h);
+        heal_pipes(h);
         recover();
         tries = tries.saturating_add(1);
     }
+    heal_bulk(h);
     let _ = msc_ready(h);
     false
 }
@@ -2581,7 +2609,7 @@ fn finish_write(h: &mut Host, clus: u32, len: u64, buf: u64) -> u64 {
 
 /// Re-ink a named root file, or create it when missing / empty.
 /// Exact measure. KINDLING `85C7-AA81` only. WRITE(10) each sector,
-/// settle, READ(10) compare. DMA dest stays MSC_DATA. FAT32 create; FAT16 re-inks.
+/// wait, READ(10) compare. DMA dest stays MSC_DATA. FAT32 create; FAT16 re-inks.
 pub fn stow_fat(name: &[u8], buf: u64, len: u64) -> u64 {
     if buf == 0 || len == 0 || len > GLEAN_MAX || name.is_empty() || name.len() > 64 {
         return err(EPERM);
@@ -2638,13 +2666,16 @@ pub fn stow_fat(name: &[u8], buf: u64, len: u64) -> u64 {
 fn msc_ready(h: &mut Host) -> bool {
     let tur = [0u8; 6];
     let mut n = 0u32;
-    while n < 16 {
+    while n < 8 {
         if bot(h, &tur, 0, 0, false) {
             return true;
         }
         let sense = [0x03, 0, 0, 0, 18, 0];
         let _ = bot(h, &sense, h.data + MSC_DATA, 18, true);
-        if n == 0 {
+        if n == 2 {
+            heal_pipes(h);
+        }
+        if n == 4 {
             heal_bulk(h);
         }
         pause();

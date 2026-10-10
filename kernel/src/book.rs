@@ -281,13 +281,26 @@ fn seal_one(book: &Book, key: &[u8; 32], out: &mut [u8; SEAL_LEN]) -> bool {
     true
 }
 
-/// `None` is a disk error. `Some(0)` is missing or a zero-length leaf.
-fn glean_side(g: Result<u64, u64>) -> Option<u64> {
-    match g {
-        Ok(n) => Some(n),
-        Err(e) if e == ENOENT => Some(0),
-        Err(_) => None,
+/// `None` is a disk error after retries. `Some(0)` is missing or a zero-length leaf.
+fn glean_one(name: &[u8], buf: &mut [u8]) -> Option<u64> {
+    let mut t = 0u8;
+    while t < 3 {
+        zero_bytes(buf);
+        match glean_leaf(name, buf) {
+            Ok(n) => return Some(n),
+            Err(e) if e == ENOENT => {
+                zero_bytes(buf);
+                return Some(0);
+            }
+            Err(_) => {
+                if crate::timer::clock_live() {
+                    crate::timer::sleep_ms(50);
+                }
+                t = t.saturating_add(1);
+            }
+        }
     }
+    None
 }
 
 fn side_wax(n: u64, buf: &[u8]) -> bool {
@@ -302,8 +315,8 @@ fn load() -> Result<Load, u64> {
     let twin = unsafe { &mut *core::ptr::addr_of_mut!(TWIN_SEAL) };
     zero_bytes(hands);
     zero_bytes(twin);
-    let gh = glean_side(glean_leaf(&HANDS_NAME, hands));
-    let gt = glean_side(glean_leaf(&TWIN_NAME, twin));
+    let gh = glean_one(&HANDS_NAME, hands);
+    let gt = glean_one(&TWIN_NAME, twin);
     let (Some(a), Some(b)) = (gh, gt) else {
         return Err(split());
     };
