@@ -132,8 +132,36 @@ def main() -> int:
             print(serial[-400:])
             sock.close()
             return 1
+        if "the spark went out" in t:
+            print("FAIL ingle-leaf (pane went out)")
+            print(serial[-400:])
+            sock.close()
+            return 1
+        sock.sendall(b"sendkey a\n")
+        read_until(sock, "(qemu)", 2)
+        time.sleep(0.3)
+        serial = serial_has("the pane is open", 2)
+        t = serial.replace("\r", "")
+        if "the spark went out" in t:
+            print("FAIL ingle-leaf (pane went out after a glyph)")
+            print(serial[-400:])
+            sock.close()
+            return 1
         sock.sendall(b"sendkey q\n")
         read_until(sock, "(qemu)", 2)
+        if "the pane is shut" not in t:
+            serial = serial_has("the pane is shut", 4)
+            t = serial.replace("\r", "")
+        if "the pane is shut" not in t:
+            print("FAIL ingle-leaf (pane never shut)")
+            print(serial[-400:])
+            sock.close()
+            return 1
+        if "the spark went out" in t:
+            print("FAIL ingle-leaf (pane went out)")
+            print(serial[-400:])
+            sock.close()
+            return 1
         if "the volume speaks" not in t:
             serial = serial_has("the volume speaks", 4)
             t = serial.replace("\r", "")

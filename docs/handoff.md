@@ -16,6 +16,14 @@ Bowl of unused names: [lore/fae-names.md](lore/fae-names.md) (research dataset).
 
 ---
 
+## 2026-10-10 — Gleed — G61 pane stands
+
+- Did: Iron G60 `the pane is open` then `kindling bunny` / `the spark went out` / leaf still spoke. rustc memset of the TUI buffers jumped through a discarded GOT at address 8. Keep `.got` in the Gleam ELF load segment. Pane copies bytes by hand. Glass bunny paints CR2. Gates fail if the pane smoors after open; they wait for `the pane is shut`.
+- Proof: `make below` ingle-leaf greps `the pane is open` then `the pane is shut` and never `the spark went out`; a glyph then `q`; ingle-leaf-cast recasts from a live pane; efi-grow still `the leaf grew` then `kept`.
+- Git: this tree, local. No push.
+- Next: iron on the IdeaPad (choose `even`, word, Enter; after glass, kept, **the pane is open**, type, `q` **the pane is shut**, then the volume); then a TUI that saves to `page`.
+- Do not: Linux ELF; open `grant`; wax KINDLOG; a new V; push.
+
 ## 2026-10-10 — Gleed — G60 the pane is open
 
 - Did: Glass splits: text on the left, bigger Grove/flame on the right (GOP 2×). `flush` with a leading form-feed homes the left pane. Spark `pane` is the first TUI — writes `the pane is open`, frames the left glass, `q` shuts, `r` recasts. `ingle` kindles it after `bud` (miss quiet; last word other than 0 fails). Packed on ingle-leaf, efi-grow, and the paved cairn.

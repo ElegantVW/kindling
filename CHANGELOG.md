@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## pane-g61 (2026-10-10)
+
+- Iron G60 opened the pane then `kindling bunny` / `the spark went out`: rustc memset of the TUI buffers jumped through a discarded GOT at address 8. Gleam ELF keeps `.got` in the load segment; pane copies bytes by hand and names memset/memcpy/memmove itself. Glass bunny paints CR2 (`kindling: bunny 0x8`). ingle-leaf / ingle-leaf-cast / efi-grow fail if the pane smoors after open, and require `the pane is shut`. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## pane-g60 (2026-10-10)
 
 - Tiny TUI `pane` after the fire: flush form-feed owns the left glass; Grove and flame sit on the right (GOP 2×, VGA at column 64). `ingle` kindles `pane` after `bud` (miss quiet). `q` shuts the pane; `r` recasts from it. `make below` ingle-leaf greps `the pane is open`; efi-grow sends an extra `q`. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.

@@ -296,7 +296,7 @@ fn gate_ist(off: u64, ist: u8) -> IdtEntry {
     }
 }
 
-fn glass_trap(n: u64) {
+fn glass_trap(n: u64, cr2: u64) {
     let name: &[u8] = match n {
         6 => b"hedgehog",
         8 => b"mole",
@@ -304,7 +304,7 @@ fn glass_trap(n: u64) {
         14 => b"bunny",
         _ => b"critter",
     };
-    let mut b = [0u8; 32];
+    let mut b = [0u8; 48];
     let p = b"kindling: ";
     let mut i = 0usize;
     while i < p.len() {
@@ -316,6 +316,30 @@ fn glass_trap(n: u64) {
         b[i] = name[k];
         i += 1;
         k += 1;
+    }
+    if n == 14 && i + 3 < b.len() {
+        b[i] = b' ';
+        i += 1;
+        b[i] = b'0';
+        i += 1;
+        b[i] = b'x';
+        i += 1;
+        let mut started = false;
+        let mut s = 0u32;
+        while s < 16 && i < b.len() - 1 {
+            let nyb = ((cr2 >> (60 - 4 * s)) & 0xf) as u8;
+            s += 1;
+            if nyb == 0 && !started && s < 16 {
+                continue;
+            }
+            started = true;
+            b[i] = if nyb < 10 {
+                b'0' + nyb
+            } else {
+                b'a' + (nyb - 10)
+            };
+            i += 1;
+        }
     }
     b[i] = b'\n';
     i += 1;
@@ -330,8 +354,12 @@ extern "sysv64" fn trap_named(n: u64, rpl: u64) -> ! {
     serial_print("kindling: trap ");
     serial_u64(n);
     serial_print("\n");
+    let mut cr2: u64;
+    unsafe {
+        core::arch::asm!("mov {}, cr2", out(reg) cr2, options(nostack, preserves_flags));
+    }
     if rpl == 3 && n != 8 {
-        glass_trap(n);
+        glass_trap(n, cr2);
         serial_print("the spark went out\n");
         let msg = b"the spark went out\n";
         crate::glass::put_bytes(msg.as_ptr(), msg.len() as u64);

@@ -107,6 +107,11 @@ def main() -> int:
             print(serial[-400:])
             sock.close()
             return 1
+        if "the spark went out" in t:
+            print("FAIL ingle-leaf-cast (pane went out)")
+            print(serial[-400:])
+            sock.close()
+            return 1
         sock.sendall(b"sendkey r\n")
         read_until(sock, "(qemu)", 2)
         sock.close()

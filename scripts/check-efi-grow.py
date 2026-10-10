@@ -244,8 +244,17 @@ def boot_fire(code: Path, want: str) -> tuple[int, str]:
         if "the pane is open" not in t:
             sock.close()
             return 1, t
+        if "the spark went out" in t:
+            sock.close()
+            return 1, t
         sock.sendall(b"sendkey q\n")
         read_until(sock, "(qemu)", 2)
+        if "the pane is shut" not in t:
+            serial = serial_has("the pane is shut", 8)
+            t = serial.replace("\r", "")
+        if "the pane is shut" not in t or "the spark went out" in t:
+            sock.close()
+            return 1, t
         if "the volume speaks" not in t:
             serial = serial_has("the volume speaks", 8)
             t = serial.replace("\r", "")

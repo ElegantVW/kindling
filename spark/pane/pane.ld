@@ -20,6 +20,8 @@ SECTIONS
 
     .data : {
         *(.data .data.*)
+        *(.got .got.plt)
+        *(.data.rel.ro .data.rel.ro.*)
     } :load
 
     .bss : {
@@ -31,7 +33,6 @@ SECTIONS
         *(.eh_frame*)
         *(.note .note.*)
         *(.comment)
-        *(.got .got.plt)
         *(.gcc_except_table*)
     }
 }
