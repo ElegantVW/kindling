@@ -1,7 +1,8 @@
 ; ingle — greeter spark, the desktop. Writes its name, kindles keeper
-; when that spark is present, greets the hand after a last word 0, reads
-; a line, says the fire is lit, kindles leaf once, writes the light remains
-; when that spark smoors, reads until q (smoor) or r (recast).
+; when that spark is present, greets the hand after a last word 0, then
+; reads: Enter lights the fire, r recasts, q smoors. After the fire is
+; lit, kindles leaf once, writes the light remains when that spark smoors,
+; reads until q (smoor) or r (recast).
 ; A miss of keeper is quiet (Enter still lights the fire). A last word
 ; other than 0 does not light the fire.
 ; Flat binary, nasm -f bin, entry 0.
@@ -68,6 +69,10 @@ start:
         test    rax, rax
         jle     .fail
         mov     al, [rsi]
+        cmp     al, 'r'
+        je      .cast
+        cmp     al, 'q'
+        je      .smoor
         cmp     al, 10
         je      .got
         inc     rbx
@@ -102,6 +107,7 @@ start:
         je      .cast
         cmp     byte [rel key], 'q'
         jne     .waitq
+.smoor:
         mov     rax, 1                  ; exit(0)
         xor     edi, edi
         int     0xE0

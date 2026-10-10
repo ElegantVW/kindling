@@ -74,6 +74,7 @@ Limine (`make serial`) is a **crutch**, out of this gate.
 | G50 | Quiet BOT — finish the WRITE before any TUR; `roll` retries glean | efi-keeper still `the name is cut` | yes |
 | G51 | `cast` recasts the fire; `r` at ingle/leaf | ingle-cast / ingle-leaf-cast / efi-cast `the fire is recast` | yes |
 | G52 | Greeting `hand` miss does not kill choose/enlist | efi-keeper still `the name is cut` / `this fire knows you` | yes |
+| G53 | `r` recasts at the greeting and the hall | ingle-cast / ingle-hall-cast / efi-cast `the fire is recast` | yes |
 
 Firmware extras (this sitting): VGA mode 3 by registers, 8×16 plane-2 font (`ok font` in `make below`), PIC ICW1–4, real-mode IVT + 32/64-bit IDT (`cerne-fw: trap`), 64-bit `lgdt`, `make below` includes `fw-trap`. Well maps through 3 GiB (`PDPT[0..2]`); `PDPT[3]` stays free for the LAPIC.
 

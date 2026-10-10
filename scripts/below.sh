@@ -278,6 +278,7 @@ python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --leaf hand=spark/hand.bin --leaf hands=spark/hands.bin \
   --leaf twin=spark/twin.bin
 python3 scripts/check-ingle-keeper.py
+python3 scripts/check-ingle-hall-cast.py
 # restore the paved kernel for later steps
 make steel >/dev/null
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \

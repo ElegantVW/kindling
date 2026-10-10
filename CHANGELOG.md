@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## recast-g53 (2026-10-10)
+
+- Iron `r` did nothing on first boot (name showing) and on the next hall: only `leaf` and ingle-after-leaf knocked `cast`. Greeting keys did not echo, so `r` was swallowed until Enter. Hall `r` redrew the list. `ingle` recasts at the name; `keeper` recasts from the hall menu. `make below` += ingle-hall-cast. Plant CAIRN only — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## hall-g52 (2026-10-10)
 
 - Iron choose of `even` painted `the ink will not hold` / `kindling: gleam exit 1`. KINDLOG already held the seals; LBA 69 was `even`. `ink_hand` WRITE landed, the reread missed, and keeper treated `-EIO` as death. `hand` is a greeting: after enlist `save` or a matching choose, a miss there still returns 0. Iron enlist proof always `--wax` so the next boot is an empty hall. KINDLING `85C7-AA81` only.

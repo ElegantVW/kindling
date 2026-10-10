@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Boot EFI ingle, Enter, r — prove recast resets QEMU (-no-reboot)."""
+"""Boot EFI ingle, r at the greeting — prove recast without Enter (-no-reboot)."""
 from __future__ import annotations
 
 import os
@@ -130,15 +130,6 @@ def main() -> int:
         if "(qemu)" not in banner:
             print("FAIL efi-cast (no monitor prompt)")
             print(banner)
-            return 1
-        sock.sendall(b"sendkey ret\n")
-        read_until(sock, "(qemu)", 2)
-        serial = serial_has("the fire is lit", 6)
-        t = serial.replace("\r", "")
-        if "the fire is lit" not in t:
-            print("FAIL efi-cast (no greeting)")
-            print(serial[-600:])
-            sock.close()
             return 1
         sock.sendall(b"sendkey r\n")
         read_until(sock, "(qemu)", 2)

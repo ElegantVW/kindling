@@ -3,10 +3,10 @@
 ; Answers: the name is cut / the word sleeps in the twin.
 ; Choose: this fire knows you. Dismiss: that name is given back.
 ; Confirm miss: the second word is a stranger.
-; Later: list keepers; digit chooses, n enlists, d dismisses.
-; The word echoes as stars. Name keys echo. Backspace edits.
+; Later: list keepers; digit chooses, n enlists, d dismisses,
+; r recasts. The word echoes as stars. Name keys echo. Backspace edits.
 ; House calls: write 2, read 10, glean 8, roll 11, enlist 12,
-; choose 13, dismiss 14, exit 1.
+; choose 13, dismiss 14, cast 15, exit 1.
 ; Book leaves hands/twin are 716 bytes (kernel SEAL_LEN).
 
         bits    64
@@ -129,6 +129,8 @@ start:
         WRITE   newk, 16
         WRITE   dism, 11
         call    read_key
+        cmp     al, 'r'
+        je      cast
         cmp     al, 'n'
         je      .new
         cmp     al, 'd'
@@ -232,6 +234,11 @@ start:
 
 ok:
         mov     rax, 1
+        xor     edi, edi
+        int     0xE0
+        ud2
+cast:
+        mov     rax, 15                 ; cast
         xor     edi, edi
         int     0xE0
         ud2
