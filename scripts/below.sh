@@ -246,6 +246,7 @@ python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --kernel kernel/kernel.ingle.bin --out kindling-ingle.img \
   --spark ingle=spark/ingle.bin
 python3 scripts/check-ingle.py
+python3 scripts/check-ingle-cast.py
 # restore the paved kernel for later steps
 make steel >/dev/null
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
@@ -260,6 +261,7 @@ python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --spark ingle=spark/ingle.bin --spark leaf=spark/leaf.bin \
   --leaf LEAF=spark/LEAF.txt
 python3 scripts/check-ingle-leaf.py
+python3 scripts/check-ingle-leaf-cast.py
 # restore the paved kernel for later steps
 make steel >/dev/null
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
@@ -397,6 +399,7 @@ mkdir -p esp/EFI/BOOT
 cp -f kernel/BOOTX64.EFI esp/EFI/BOOT/
 cp -f spark/cairn.bin esp/EFI/BOOT/CAIRN
 python3 scripts/check-efi-ingle.py
+python3 scripts/check-efi-cast.py
 
 echo "---- efi-usb ----"
 python3 scripts/check-efi-usb.py

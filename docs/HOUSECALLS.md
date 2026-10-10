@@ -34,6 +34,7 @@ Swift, purposeful, direct — no noise. Unknown refuses, never silently succeeds
 | 12 | `enlist` | `rdi` = name, `rsi` = word, `rdx` = confirm (NUL-terminated) | `0` or `-errno` | done. Confirm mismatch / empty → `-EINVAL` (no glass; `keeper` compares first and writes `the second word is a stranger`). Duplicate → `that hand is taken`, `-EEXIST`. Full (8) → `the book is full`, `-EPERM`. Seals both leaves with fresh nonces, inks `hand`. A stow miss waxes both leaves so the next `roll` is empty. KINDLING `85C7-AA81` on KINDLOG (fixed LBAs; FAT is the ESP). Spark then writes `the name is cut` / `the word sleeps in the twin` |
 | 13 | `choose` | `rdi` = name, `rsi` = word | `0` or `-errno` | done. Verifier match inks `hand` and returns 0. Spark writes `this fire knows you`. Miss → `the word fails`, `-EPERM`. Split refuses |
 | 14 | `dismiss` | `rdi` = name, `rsi` = word | `0` or `-errno` | done. Last live keeper → `the last hand stays`, `-EPERM`. Wrong word → `the word fails`. Clears the slot and reseals both leaves. Spark writes `that name is given back` |
+| 15 | `cast` | — | never | done: glass `the fire is recast`, then 8042 pulse (`out 0x64, 0xFE`), PCI reset (`0xCF9`), then a triple fault. `ingle` and `leaf` knock this on **`r`**. **`q`** still smoors (`exit 0`). |
 
 Anything else → `-ENOSYS`. Wrapping keys never leave the kernel. There is no generic cipher house call this sitting.
 
@@ -68,10 +69,10 @@ Feature `ingle-test` looses `ingle`: `kindling: ingle ok`, the spark writes
 `ingle`, kindles `keeper` when that spark is present, greets an inked `hand`
 after last word 0, `read` waits, Enter yields `the fire is lit`, then `ingle`
 kindles `leaf` once (a miss is quiet). A last word ≥ 0 writes `the light remains`.
-`read` until `q`, then `gleam exit 0`. A miss of `keeper` is quiet. A last
+`read` until `q` (smoor) or `r` (recast). A miss of `keeper` is quiet. A last
 word other than 0 does not light the fire.
 Feature `leaf-test` looses `leaf`: `kindling: leaf ok`, the spark gleans
-`LEAF`, writes the page, `read` waits for `q`, then `gleam exit 0`.
+`LEAF`, writes the page, `read` waits for `q` or `r`.
 Feature `tale-test` on EFI (`efi-stow`) looses `tale` against a FAT slate:
 `kindling: tale ok`, first boot `stowed` / `ink holds`, second boot of the
 same usb-storage image `kept` / `ink holds` (never `stowed`). The volume

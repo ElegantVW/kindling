@@ -32,7 +32,7 @@ Disk: `LBA 0` KMAP · `LBA 1..32` loader (16KiB slot) · `LBA 33..` kernel ·
 cairn (ingle + leaf + `LEAF`, when packed). `make image` lays `--spark ingle`
 `--spark leaf` `--leaf LEAF` and writes `spark/cairn.bin`. After the well, the
 happy kernel lights `ingle` when the cairn has it; missing cairn is a quiet
-halt. After the fire is lit, `ingle` kindles `leaf`.
+halt. After the fire is lit, `ingle` kindles `leaf`. `r` recasts (`cast`); `q` smoors.
 Contracts in `docs/FIRMWARE.md`. RAM size is CMOS (this ROM *is* the BIOS —
 there is no `int 0x15`). First glyph is Lilac (VGA 13 + serial `ESC[95m`).
 `make hearth-see` opens a window.

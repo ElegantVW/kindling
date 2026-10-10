@@ -553,7 +553,7 @@ pub fn run_spawn(cup_top: u64) -> ! {
     crate::house::enter_user_in(realm.spark, realm.cup_top, realm.cr3);
 }
 
-/// Loose `leaf`: gleans `LEAF`, writes the page, waits for `q`.
+/// Loose `leaf`: gleans `LEAF`, writes the page, waits for `q` or `r`.
 /// Never returns.
 #[cfg(feature = "leaf-test")]
 pub fn run_leaf(cup_top: u64) -> ! {

@@ -1,11 +1,11 @@
 ; ingle — greeter spark, the desktop. Writes its name, kindles keeper
 ; when that spark is present, greets the hand after a last word 0, reads
 ; a line, says the fire is lit, kindles leaf once, writes the light remains
-; when that spark smoors, reads until q, exits.
+; when that spark smoors, reads until q (smoor) or r (recast).
 ; A miss of keeper is quiet (Enter still lights the fire). A last word
 ; other than 0 does not light the fire.
 ; Flat binary, nasm -f bin, entry 0.
-; House calls: write 2, read 10, spawn 5, glean 8, exit 1.
+; House calls: write 2, read 10, spawn 5, glean 8, exit 1, cast 15.
 
         bits    64
         default abs
@@ -91,16 +91,23 @@ start:
         mov     rdx, 18
         int     0xE0
 .waitq:
-        mov     rax, 10                 ; read until q
+        mov     rax, 10                 ; read until q or r
         xor     edi, edi
         lea     rsi, [rel key]
         mov     rdx, 1
         int     0xE0
         test    rax, rax
         jle     .fail
+        cmp     byte [rel key], 'r'
+        je      .cast
         cmp     byte [rel key], 'q'
         jne     .waitq
         mov     rax, 1                  ; exit(0)
+        xor     edi, edi
+        int     0xE0
+        ud2
+.cast:
+        mov     rax, 15                 ; cast
         xor     edi, edi
         int     0xE0
         ud2

@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## recast-g51 (2026-10-10)
+
+- Iron hall is lit (`even`). `q` already smoors (`exit` / `hlt`); the panel stays on. House call 15 `cast` paints `the fire is recast`, pulses the 8042 (`0xFE`), then PCI reset (`0xCF9`). `ingle` and `leaf` knock it on `r`. `make below` += ingle-cast, ingle-leaf-cast, efi-cast. Plant EFI only — KINDLOG stays held.
+
 ## ink-g50 (2026-10-10)
 
 - Iron G49 hung ~90s after the second word, then `the ink will not hold` / `the book is split` / `kindling: gleam exit 1`. LBA 65 was a USB `USBC` TEST UNIT READY packet, not a seal: after a WRITE the kernel sent TUR while the Databar still wanted 512 data bytes, and that 31-byte CBW was programmed to flash. Quiet path: WRITE, wait 300 ms, READ (1 s). No FUA, no SYNCHRONIZE CACHE, no class reset until the WRITE is retired. `roll` retries a dead glean three times. KINDLING `85C7-AA81` only.

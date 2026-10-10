@@ -22,6 +22,7 @@ pub const ROLL: u64 = crate::book::ROLL;
 pub const ENLIST: u64 = crate::book::ENLIST;
 pub const CHOOSE: u64 = crate::book::CHOOSE;
 pub const DISMISS: u64 = crate::book::DISMISS;
+pub const CAST: u64 = 15;
 
 const EPERM: u64 = 1;
 #[cfg(feature = "house-test")]
@@ -68,6 +69,71 @@ fn speak_exit(code: u64) {
     let s = core::str::from_utf8(&buf[..n]).unwrap();
     serial_print(s);
     crate::glass::put_bytes(buf.as_ptr(), n as u64);
+}
+
+#[inline]
+unsafe fn outb(port: u16, val: u8) {
+    unsafe {
+        asm!("out dx, al", in("dx") port, in("al") val, options(nomem, nostack, preserves_flags));
+    }
+}
+
+#[inline]
+unsafe fn inb(port: u16) -> u8 {
+    let v: u8;
+    unsafe {
+        asm!("in al, dx", out("al") v, in("dx") port, options(nomem, nostack, preserves_flags));
+    }
+    v
+}
+
+fn wait_8042() {
+    let mut n = 0u32;
+    while n < 100_000 {
+        if unsafe { inb(0x64) } & 2 == 0 {
+            return;
+        }
+        n = n.saturating_add(1);
+        core::hint::spin_loop();
+    }
+}
+
+fn pause_cast() {
+    let mut n = 0u32;
+    while n < 200_000 {
+        n = n.saturating_add(1);
+        core::hint::spin_loop();
+    }
+}
+
+#[repr(C, packed)]
+struct IdtPtr {
+    limit: u16,
+    base: u64,
+}
+
+static EMPTY_IDT: IdtPtr = IdtPtr { limit: 0, base: 0 };
+
+/// Recast the fire. 8042 pulse, CF9, then a triple fault. Never returns.
+fn recast() -> ! {
+    let p = b"the fire is recast\n";
+    serial_print("the fire is recast\n");
+    crate::glass::put_bytes(p.as_ptr(), p.len() as u64);
+    wait_8042();
+    unsafe {
+        outb(0x64, 0xFE);
+    }
+    pause_cast();
+    unsafe {
+        outb(0xCF9, 0x02);
+        outb(0xCF9, 0x06);
+        outb(0xCF9, 0x0E);
+    }
+    pause_cast();
+    unsafe {
+        asm!("lidt [{}]", in(reg) core::ptr::addr_of!(EMPTY_IDT));
+        asm!("ud2", options(noreturn));
+    }
 }
 
 fn write_serial(buf: *const u8, len: u64) -> u64 {
@@ -132,6 +198,7 @@ pub fn dispatch(n: u64, a0: u64, a1: u64, a2: u64) -> u64 {
         ENLIST => crate::book::enlist(a0, a1, a2),
         CHOOSE => crate::book::choose(a0, a1),
         DISMISS => crate::book::dismiss(a0, a1),
+        CAST => recast(),
         GRANT | FLUSH => err(EAGAIN),
         _ => err(ENOSYS),
     }

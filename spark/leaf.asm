@@ -1,6 +1,6 @@
-; leaf — glean LEAF, write the page, read until q, exit.
+; leaf — glean LEAF, write the page, read until q (smoor) or r (recast).
 ; Flat binary, nasm -f bin, entry at offset 0. Position-independent.
-; House calls: glean 8, write 2, read 10, exit 1.
+; House calls: glean 8, write 2, read 10, exit 1, cast 15.
 ; Gleam name LEAF (cairn first, then the volume root). The page is the
 ; proof; this spark does not write its own name.
 
@@ -28,9 +28,16 @@ start:
         int     0xE0
         test    rax, rax
         jle     .fail
+        cmp     byte [rel key], 'r'
+        je      .cast
         cmp     byte [rel key], 'q'
         jne     .more
         mov     rax, 1                  ; exit(0)
+        xor     edi, edi
+        int     0xE0
+        ud2
+.cast:
+        mov     rax, 15                 ; cast
         xor     edi, edi
         int     0xE0
         ud2
