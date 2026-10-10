@@ -62,7 +62,7 @@ def main() -> int:
             "-M",
             "pc",
             "-m",
-            "256M",
+            os.environ.get("INGLE_LEAF_MEM", "256M"),
             "-bios",
             str(FW),
             "-drive",
@@ -150,7 +150,7 @@ def main() -> int:
             print("FAIL ingle-leaf (no gleam exit 0)")
             print(serial[-400:])
             return 1
-        print("ok   ingle-leaf")
+        print("ok   ingle-leaf (" + os.environ.get("INGLE_LEAF_MEM", "256M") + ")")
         return 0
     finally:
         proc.kill()

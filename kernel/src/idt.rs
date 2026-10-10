@@ -297,19 +297,26 @@ fn gate_ist(off: u64, ist: u8) -> IdtEntry {
 }
 
 fn glass_trap(n: u64) {
+    let name: &[u8] = match n {
+        6 => b"hedgehog",
+        8 => b"mole",
+        13 => b"fox",
+        14 => b"bunny",
+        _ => b"critter",
+    };
     let mut b = [0u8; 32];
-    let p = b"kindling: trap ";
+    let p = b"kindling: ";
     let mut i = 0usize;
     while i < p.len() {
         b[i] = p[i];
         i += 1;
     }
-    if n >= 10 {
-        b[i] = b'0' + ((n / 10) % 10) as u8;
+    let mut k = 0usize;
+    while k < name.len() && i < b.len() - 1 {
+        b[i] = name[k];
         i += 1;
+        k += 1;
     }
-    b[i] = b'0' + (n % 10) as u8;
-    i += 1;
     b[i] = b'\n';
     i += 1;
     crate::glass::put_bytes(b.as_ptr(), i as u64);

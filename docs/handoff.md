@@ -16,6 +16,14 @@ Bowl of unused names: [lore/fae-names.md](lore/fae-names.md) (research dataset).
 
 ---
 
+## 2026-10-10 — Gleed — G58 gleam floor (iron bunny)
+
+- Did: Iron after the fire: `kindling: trap 14` / `the spark went out` / leaf still spoke. Gleam's 1 GiB floor sat on the EFI well cap and the IdeaPad GOP. New floor 1.25 GiB. Clone copies 0–3 GiB even without U/S (GOP). Glass names guest traps (`bunny` / `hedgehog` / `fox` / `mole` / `critter`); serial keeps the number.
+- Proof: `make below` ingle-leaf 256M and 2G grep `the rust is lit` / `the glass is ours`.
+- Git: this tree, local. No push.
+- Next: iron on the IdeaPad (choose `even`, word, Enter); then grow a leaf, then a first tiny TUI.
+- Do not: Linux ELF; open `grant`; wax KINDLOG; a new V; push.
+
 ## 2026-10-10 — Gleed — G57 paved gleam (flush after the fire)
 
 - Did: `ingle` kindles `gleam` after `the fire is lit`. Miss is quiet. Last word other than 0 fails (flush missed). Packed on ingle-leaf, efi-ingle, and the paved cairn so the IdeaPad glass can show `the rust is lit` / `the glass is ours` after Enter. Pool runs are contiguous by address, so gleam (ELF) can smoor and `leaf` can still kindle.

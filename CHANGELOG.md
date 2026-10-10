@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## floor-g58 (2026-10-10)
+
+- Iron `trap 14` after the fire: gleam sat at 1 GiB, which is the EFI well cap and where the IdeaPad GOP can live, so the user walk had no U/S. Floor moves to 1.25 GiB (`0x50000000`). Spawn clones GOP gigs instead of sharing them. Guest traps on the glass wear critters (`bunny` is `#PF`); serial still `kindling: trap N`. ingle-leaf also at 2 GiB RAM. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## paved-g57 (2026-10-10)
 
 - After the fire is lit, `ingle` kindles `gleam` (flush on the glass). A miss is quiet so ingle-only images still greet. Packed on ingle-leaf, efi-ingle, and the paved cairn. Cup/spark runs search the pool by physical address so an ELF at 1 GiB can smoor and a raw spark can still kindle. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.

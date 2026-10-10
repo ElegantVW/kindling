@@ -7,7 +7,7 @@ PHDRS
 
 SECTIONS
 {
-    . = 0x40000000;
+    . = 0x50000000;
 
     .text : {
         KEEP(*(.text.entry))

@@ -297,6 +297,7 @@ python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
   --spark leaf=spark/leaf.bin --leaf LEAF=spark/LEAF.txt
 python3 scripts/check-ingle-leaf.py
+INGLE_LEAF_MEM=2G python3 scripts/check-ingle-leaf.py
 python3 scripts/check-ingle-leaf-cast.py
 # restore the paved kernel for later steps
 make steel >/dev/null

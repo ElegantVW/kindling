@@ -1,6 +1,6 @@
 # Below — the gate
 
-Firmware → loader (off the disk) → Kindling spark. House light (G15–G57) is on.
+Firmware → loader (off the disk) → Kindling spark. House light (G15–G58) is on.
 Linux ELF waits on its own gate. Gleam ELF (our headers, house calls) is G55. This file staying green is still the law.
 
 Run: `make below`  
@@ -79,6 +79,7 @@ Limine (`make serial`) is a **crutch**, out of this gate.
 | G55 | Gleam ELF — rustc `no_std` spark on our headers, house calls | gleam-elf in `make below`: `kindling: gleam ok`, `the rust is lit`, `gleam exit 0` | yes |
 | G56 | `flush` — the glass a TUI owns; grant stays shut | gleam-elf: `the glass is ours`; house-test `flush` present is 0 | yes |
 | G57 | Paved gleam — ingle kindles it after the fire | ingle-leaf + efi-ingle: `the rust is lit` / `the glass is ours`; miss quiet | yes |
+| G58 | Gleam floor above the EFI well; traps wear critters on the glass | ingle-leaf 256M + 2G: rust/glass; glass `bunny` for guest `#PF` | yes |
 
 Firmware extras (this sitting): VGA mode 3 by registers, 8×16 plane-2 font (`ok font` in `make below`), PIC ICW1–4, real-mode IVT + 32/64-bit IDT (`cerne-fw: trap`), 64-bit `lgdt`, `make below` includes `fw-trap`. Well maps through 3 GiB (`PDPT[0..2]`); `PDPT[3]` stays free for the LAPIC.
 

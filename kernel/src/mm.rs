@@ -281,7 +281,7 @@ pub(crate) fn page_alloc() -> u64 {
 }
 
 /// `n` physically contiguous pages. LIFO pop is enough on a bump; an ELF
-/// at 1 GiB returns extra tables, so the next cup must search the pool.
+/// returns extra tables, so the next cup must search the pool.
 pub(crate) fn page_alloc_run(n: u64) -> Option<u64> {
     if n == 0 {
         return None;
@@ -402,8 +402,10 @@ fn clone_kernel_map() -> u64 {
                     dst_pdpt.add(gb).write_volatile(0);
                     continue;
                 }
-                // APIC window and any supervisor PDPT: share, no US.
-                if gb >= 3 || pe & US == 0 {
+                // APIC window (gb ≥ 3): share, no US. GOP/UC in 0–3 GiB is
+                // planted without US — copy it so a user spark can still
+                // grow a U/S walk in that gigabyte.
+                if gb >= 3 {
                     dst_pdpt.add(gb).write_volatile(pe & !US);
                     continue;
                 }
@@ -496,6 +498,9 @@ unsafe fn pte4k(cr3: u64, va: u64) -> *mut u64 {
         } else if e1 & PS != 0 {
             spawn_fail(6)
         } else {
+            if e1 & US == 0 {
+                pdpt.add(gb).write_volatile(e1 | US);
+            }
             pte_phys(e1)
         };
         let pd = pd as *mut u64;

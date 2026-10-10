@@ -442,9 +442,11 @@ const PT_DYNAMIC: u32 = 2;
 const PH_MAX: usize = 16;
 const EHDR: u64 = 64;
 const PHDR: u64 = 56;
-/// Gleam ELF floor: 1 GiB. Kindling's cup sits at 4 MiB; they do not share a floor.
-const USER_VA_LO: u64 = 0x4000_0000;
-const USER_VA_HI: u64 = 0x8000_0000;
+/// Gleam ELF floor: 1.25 GiB. EFI well caps at 1 GiB; QEMU GOP sits at
+/// 2 GiB. 1 GiB collided with iron GOP (user walk had no U/S). 4 GiB
+/// does not fit the small `core` (`R_X86_64_32S`).
+const USER_VA_LO: u64 = 0x5000_0000;
+const USER_VA_HI: u64 = 0x6000_0000;
 
 fn b8(src: u64, off: u64) -> u8 {
     unsafe { ((src + off) as *const u8).read_volatile() }

@@ -117,8 +117,8 @@ volume's **root** by the same Gleam name (exact size, no truncated spark).
 Raw `nasm -f bin` stays 64 KiB and identity-mapped (entry at offset 0).
 A Gleam ELF64 little-endian x86_64 `ET_EXEC` (our headers, house calls,
 not a Linux ABI, no `PT_INTERP`) may be 256 KiB; Kindling maps its
-`PT_LOAD` at the spark's own VA (1 GiB, so it never sits on Kindling's
-cup at 4 MiB) and enters at `e_entry`. Then it clones the kernel map onto
+`PT_LOAD` at the spark's own VA (1.25 GiB, above the EFI 1 GiB well and
+below QEMU GOP at 2 GiB, so it never sits on iron GOP at 1 GiB) and enters at `e_entry`. Then it clones the kernel map onto
 a new CR3, strips U/S from kernel leaves, and grants user only the spark
 and a 64 KiB cup (one guard page not-present). One Light: kindle the spark;
 when it smoors, `spawn` returns the last word. Nested spawn is `-EAGAIN`.
@@ -143,7 +143,7 @@ is the design working.
 - **first-leaf** — the first leaf, packed at cast time.
 - **wick** — the second spark: tells `second-leaf` from its own cup, then exits.
 - **ember** — the live coal (G30): kindles `wick`, writes `stayed`, exits with wick's last word. Packed on the spawn-test image. G31: kindles `splanc` when that spark is packed; spawn refuses, ember exits 1.
-- **gleam** — G55 rustc `no_std` spark. House `write`, then G56 `flush` (present + a glass-only line), then `exit 0`. Packed on the gleam-test image and, from G57, on the paved cairn / ingle-leaf / efi-ingle so ingle kindles it after the fire. Proof lines `the rust is lit` and `the glass is ours`.
+- **gleam** — G55 rustc `no_std` spark. House `write`, then G56 `flush` (present + a glass-only line), then `exit 0`. Linked at 1.25 GiB (G58). Packed on the gleam-test image and, from G57, on the paved cairn / ingle-leaf / efi-ingle so ingle kindles it after the fire. Proof lines `the rust is lit` and `the glass is ours`.
 - **splanc** — a spark that does not catch (G31). Irish *splanc*. `ud2`; the house names the miss.
 - **second-leaf** — `the cup is its own`.
 - **ingle** — the greeter spark, the desktop (G34). Writes its name, kindles `keeper` when present, greets an inked `hand` after last word 0, then Enter lights the fire, `r` recasts, `q` smoors. After the fire is lit, kindles `gleam` once (G57; a miss is quiet; a last word other than 0 fails), then `leaf` once, writes `the light remains` when that spark smoors, waits for `q` (smoor) or `r` (recast, house `cast`). Packed on `make image` with `gleam`, `leaf`, `LEAF`, `keeper`, wax `hand`, and wax `hands`/`twin`; EFI copies the blob from `EFI/BOOT/CAIRN`. A miss of `gleam`, `leaf`, or `keeper` is quiet. A last word other than 0 from `keeper` does not light the fire.
