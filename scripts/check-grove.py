@@ -16,10 +16,10 @@ IMG = ROOT / "kindling.img"
 MON = f"/tmp/kindling-grove-{os.getpid()}.mon"
 SER = f"/tmp/kindling-grove-{os.getpid()}.ser"
 
-# Row 14, col 0: title "Grove" as char+attr words (parchment 0x07 on night).
-TITLE_ADDR = 0xB8000 + 14 * 160
-# Row 8, col 0: Grove sigil starts with backslash, violet 0x05.
-SIGIL_ADDR = 0xB8000 + 8 * 160
+# Row 0, col 0: title "Grove" as char+attr words (parchment 0x07 on night).
+TITLE_ADDR = 0xB8000 + 0 * 160
+# Row 8, col 64: Grove sigil starts with backslash, violet 0x05 (right pane).
+SIGIL_ADDR = 0xB8000 + 8 * 160 + 64 * 2
 
 
 def read_until(sock: socket.socket, mark: str, timeout: float) -> str:

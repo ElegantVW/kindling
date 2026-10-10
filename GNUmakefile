@@ -50,9 +50,14 @@ spark/gleam.elf: spark/gleam/src/main.rs spark/gleam/gleam.ld spark/gleam/Cargo.
 	cd spark/gleam && $(CARGO) build --release --target x86_64-unknown-none
 	cp -v spark/gleam/target/x86_64-unknown-none/release/gleam $@
 
+spark/pane.elf: spark/pane/src/main.rs spark/pane/pane.ld spark/pane/Cargo.toml spark/pane/.cargo/config.toml
+	cd spark/pane && $(CARGO) build --release --target x86_64-unknown-none
+	cp -v spark/pane/target/x86_64-unknown-none/release/pane $@
+	llvm-objcopy --strip-debug $@
+
 gleam-spark: spark/gleam.elf
 
-$(IMAGE): flint steel $(LD_BIN) scripts/mkimg.py spark/ingle.asm spark/leaf.asm spark/keeper.asm spark/bud.asm spark/LEAF.txt spark/gleam.elf
+$(IMAGE): flint steel $(LD_BIN) scripts/mkimg.py spark/ingle.asm spark/leaf.asm spark/keeper.asm spark/bud.asm spark/LEAF.txt spark/gleam.elf spark/pane.elf
 	$(NASM) -f bin -o spark/ingle.bin spark/ingle.asm
 	$(NASM) -f bin -o spark/leaf.bin spark/leaf.asm
 	$(NASM) -f bin -o spark/keeper.bin spark/keeper.asm
@@ -60,7 +65,8 @@ $(IMAGE): flint steel $(LD_BIN) scripts/mkimg.py spark/ingle.asm spark/leaf.asm 
 	python3 -c "from pathlib import Path; Path('spark/hand.bin').write_bytes(bytes(32)); Path('spark/hands.bin').write_bytes(bytes(716)); Path('spark/twin.bin').write_bytes(bytes(716))"
 	python3 scripts/mkimg.py --loader $(LD_BIN) --kernel kernel/kernel.fw.bin \
 		--spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
-		--spark bud=spark/bud.bin --spark leaf=spark/leaf.bin \
+		--spark bud=spark/bud.bin --spark pane=spark/pane.elf \
+		--spark leaf=spark/leaf.bin \
 		--spark keeper=spark/keeper.bin --leaf LEAF=spark/LEAF.txt \
 		--leaf hand=spark/hand.bin --leaf hands=spark/hands.bin \
 		--leaf twin=spark/twin.bin --out $@ --cairn-out spark/cairn.bin

@@ -1,5 +1,9 @@
 # fae-kernel changelog
 
+## pane-g60 (2026-10-10)
+
+- Tiny TUI `pane` after the fire: flush form-feed owns the left glass; Grove and flame sit on the right (GOP 2×, VGA at column 64). `ingle` kindles `pane` after `bud` (miss quiet). `q` shuts the pane; `r` recasts from it. `make below` ingle-leaf greps `the pane is open`; efi-grow sends an extra `q`. Plant EFI + CAIRN — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.
+
 ## grow-g59 (2026-10-10)
 
 - FAT32 `stow` grows or shrinks a present root file to the asked measure (extra clusters allocated and zeroed; a shorter file frees the tail). Cairn leaves stay exact measure. Spark `bud` inks FAT `page` 10→600 after the fire; already inked it says `kept`. A dark volume is quiet. `make below` += efi-grow. Plant EFI + CAIRN + wax `page` — KINDLOG stays held (`even`). KINDLING `85C7-AA81` only.

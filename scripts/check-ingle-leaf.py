@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Boot ingle with gleam+leaf packed: greet, rust/glass, leaf speaks, q homes, q leaves."""
+"""Boot ingle with gleam+pane+leaf packed: greet, rust/glass, pane, q, leaf, q homes, q leaves."""
 from __future__ import annotations
 
 import os
@@ -124,6 +124,16 @@ def main() -> int:
             print(serial[-400:])
             sock.close()
             return 1
+        if "the pane is open" not in t:
+            serial = serial_has("the pane is open", 4)
+            t = serial.replace("\r", "")
+        if "the pane is open" not in t:
+            print("FAIL ingle-leaf (pane never opened)")
+            print(serial[-400:])
+            sock.close()
+            return 1
+        sock.sendall(b"sendkey q\n")
+        read_until(sock, "(qemu)", 2)
         if "the volume speaks" not in t:
             serial = serial_has("the volume speaks", 4)
             t = serial.replace("\r", "")

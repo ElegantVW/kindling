@@ -15,8 +15,16 @@ const LILAC: u32 = 0x00D4_B4E8;
 const VIOLET: u32 = 0x00B0_8CC8;
 const PARCHMENT: u32 = 0x00F0_E4EE;
 const NIGHT: u32 = 0x001A_1218;
-/// GOP log and Grove share this left margin so ingle sits under the title.
+/// GOP text pane left margin. Art sits on the right.
 const GOP_X: u64 = 8;
+/// Left text columns; Grove/flame occupy the right.
+const TEXT_COLS: u16 = 52;
+/// Log origin under the title. Flush form-feed homes here.
+const LOG_ROW: u16 = 2;
+/// VGA column where the 7-wide Grove/flame begins.
+const VGA_ART_COL: u16 = 64;
+/// GOP art scale. 2× turns the 8×16 face into 16×32 glyphs.
+const GOP_ART_SCALE: u64 = 2;
 
 /// Kindling flame — `docs/identity/logo.txt` (firmware already laid this on VGA).
 const FLAME: &str = "  *\n /|\\\n/ | \\\n  |\n / \\\n/   \\\n";
@@ -117,43 +125,66 @@ pub fn fb_info() -> Option<(u64, u64, u64, u64)> {
 }
 
 fn show_vga() {
-    // Flame already at rows 0–6. Clearing from row 8, title at 14, log at 16.
-    for r in 8..ROWS {
+    // Text left, glyphs right. Firmware flame was top-left; this sitting
+    // owns the whole 80×25 so the log does not sit under the art.
+    for r in 0..ROWS {
         for c in 0..COLS {
             vga_cell(r, c, b' ', 0x00);
         }
     }
-    put_vga_art(8, GROVE, ATTR_VIOLET);
-    put_vga_row(14, 0, TITLE.as_bytes(), ATTR_PARCHMENT);
+    put_vga_row(0, 0, TITLE.as_bytes(), ATTR_PARCHMENT);
+    put_vga_art(1, VGA_ART_COL, FLAME, ATTR_LILAC);
+    put_vga_art(8, VGA_ART_COL, GROVE, ATTR_VIOLET);
     unsafe {
-        core::ptr::addr_of_mut!(CUR_R).write(16);
+        core::ptr::addr_of_mut!(CUR_R).write(LOG_ROW);
         core::ptr::addr_of_mut!(CUR_C).write(0);
     }
 }
 
 fn show_gop() {
     // Glyphs only — a full UC fill of 1080p looks hung on iron. blit_char
-    // already lays Night behind each cell.
-    let mut y = 8u64;
-    y = put_gop_art(GOP_X, y, FLAME, LILAC);
-    y += 16;
-    y = put_gop_art(GOP_X, y, GROVE, VIOLET);
-    y += 16;
-    put_gop_row(GOP_X, y, TITLE.as_bytes(), PARCHMENT);
-    let row = ((y + 32) / 16) as u16;
+    // already lays Night behind each cell. Text stays left; art is 2× on
+    // the right so the Grove reads as a mark, not a caption.
+    put_gop_row(GOP_X, gop_y(0), TITLE.as_bytes(), PARCHMENT);
+    let fb = unsafe { core::ptr::addr_of!(FB).read() };
+    let scale = art_scale(fb);
+    let art_w = 7u64.saturating_mul(8).saturating_mul(scale);
+    let art_x = if fb.width > art_w.saturating_add(16) {
+        fb.width.saturating_sub(art_w.saturating_add(16))
+    } else {
+        GOP_X
+    };
+    let mut y = gop_y(0);
+    y = put_gop_art_scaled(art_x, y, FLAME, LILAC, scale);
+    y = y.saturating_add(8 * scale);
+    let _ = put_gop_art_scaled(art_x, y, GROVE, VIOLET, scale);
     unsafe {
-        core::ptr::addr_of_mut!(CUR_R).write(row.max(16));
+        core::ptr::addr_of_mut!(CUR_R).write(LOG_ROW);
         core::ptr::addr_of_mut!(CUR_C).write(0);
     }
-    draw_cursor(unsafe { core::ptr::addr_of!(CUR_R).read() }, 0);
+    draw_cursor(LOG_ROW, 0);
 }
 
-fn put_vga_art(mut row: u16, art: &str, attr: u8) {
-    let mut col = 0u16;
+fn art_scale(fb: Fb) -> u64 {
+    let need = 7u64
+        .saturating_mul(8)
+        .saturating_mul(GOP_ART_SCALE)
+        .saturating_add(16)
+        .saturating_add(GOP_X)
+        .saturating_add(TEXT_COLS as u64 * 8);
+    if fb.width >= need {
+        GOP_ART_SCALE
+    } else {
+        1
+    }
+}
+
+fn put_vga_art(mut row: u16, start: u16, art: &str, attr: u8) {
+    let mut col = start;
     for b in art.bytes() {
         if b == b'\n' {
             row = row.saturating_add(1);
-            col = 0;
+            col = start;
             continue;
         }
         if row < ROWS && col < COLS {
@@ -182,20 +213,22 @@ fn vga_cell(row: u16, col: u16, ch: u8, attr: u8) {
     }
 }
 
-fn put_gop_art(x: u64, mut y: u64, art: &str, fg: u32) -> u64 {
+fn put_gop_art_scaled(x: u64, mut y: u64, art: &str, fg: u32, scale: u64) -> u64 {
     let mut col = 0u64;
     let start = y;
+    let step = 16u64.saturating_mul(if scale == 0 { 1 } else { scale });
+    let cell = 8u64.saturating_mul(if scale == 0 { 1 } else { scale });
     for b in art.bytes() {
         if b == b'\n' {
-            y += 16;
+            y = y.saturating_add(step);
             col = 0;
             continue;
         }
-        blit_char(x + col * 8, y, b, fg);
+        blit_char_scaled(x + col * cell, y, b, fg, scale);
         col += 1;
     }
     if y == start {
-        y += 16;
+        y = y.saturating_add(step);
     }
     y
 }
@@ -207,10 +240,15 @@ fn put_gop_row(x: u64, y: u64, s: &[u8], fg: u32) {
 }
 
 fn blit_char(x: u64, y: u64, ch: u8, fg: u32) {
+    blit_char_scaled(x, y, ch, fg, 1);
+}
+
+fn blit_char_scaled(x: u64, y: u64, ch: u8, fg: u32, scale: u64) {
     let fb = unsafe { core::ptr::addr_of!(FB).read() };
     if fb.addr == 0 || (ch as usize) >= 128 {
         return;
     }
+    let s = if scale == 0 { 1 } else { scale };
     let pix = pack(fg, fb.bgr);
     let night = pack(NIGHT, fb.bgr);
     let base = (ch as usize) * 16;
@@ -223,7 +261,16 @@ fn blit_char(x: u64, y: u64, ch: u8, fg: u32) {
         let mut col = 0u64;
         while col < 8 {
             let on = bits & (0x80 >> col) != 0;
-            poke(fb, x + col, y + row, if on { pix } else { night });
+            let p = if on { pix } else { night };
+            let mut dy = 0u64;
+            while dy < s {
+                let mut dx = 0u64;
+                while dx < s {
+                    poke(fb, x + col * s + dx, y + row * s + dy, p);
+                    dx += 1;
+                }
+                dy += 1;
+            }
             col += 1;
         }
         row += 1;
@@ -261,7 +308,9 @@ pub fn live() -> bool {
 
 /// House `flush` (call 7): the glass a TUI owns. Serial stays the transcript.
 /// `len == 0` presents (0 if live, `-ENODEV` if dark). `len > 0` paints `buf`
-/// with the same glyphs as `write`. Cap 1 MiB.
+/// with the same glyphs as `write`. A leading form-feed (`0x0C`) homes and
+/// clears the left text pane, then paints the rest — the frame a TUI owns.
+/// Cap 1 MiB.
 pub fn flush(buf: u64, len: u64) -> u64 {
     const EPERM: u64 = 1;
     const ENODEV: u64 = 19;
@@ -277,8 +326,57 @@ pub fn flush(buf: u64, len: u64) -> u64 {
     if buf == 0 || len > (1 << 20) {
         return err(EPERM);
     }
-    put_bytes(buf as *const u8, len);
+    let first = unsafe { (buf as *const u8).read_volatile() };
+    if first == 0x0C {
+        home_text();
+        if len > 1 {
+            put_bytes((buf + 1) as *const u8, len - 1);
+        }
+    } else {
+        put_bytes(buf as *const u8, len);
+    }
     len
+}
+
+fn home_text() {
+    let vga = unsafe { core::ptr::addr_of!(VGA_MODE).read() };
+    let max_r = if vga {
+        ROWS
+    } else {
+        let h = unsafe { core::ptr::addr_of!(FB).read().height };
+        (h / 16) as u16
+    };
+    let cols = text_cols(vga);
+    let mut r = LOG_ROW;
+    while r < max_r {
+        let mut c = 0u16;
+        while c < cols {
+            if vga {
+                vga_cell(r, c, b' ', 0x00);
+            } else {
+                blit_char(gop_x(c), gop_y(r), b' ', LILAC);
+            }
+            c = c.saturating_add(1);
+        }
+        r = r.saturating_add(1);
+    }
+    unsafe {
+        core::ptr::addr_of_mut!(CUR_R).write(LOG_ROW);
+        core::ptr::addr_of_mut!(CUR_C).write(0);
+    }
+    if !vga {
+        draw_cursor(LOG_ROW, 0);
+    }
+}
+
+fn text_cols(vga: bool) -> u16 {
+    if vga {
+        TEXT_COLS.min(VGA_ART_COL.saturating_sub(2))
+    } else {
+        let w = unsafe { core::ptr::addr_of!(FB).read().width };
+        let fit = ((w.saturating_sub(GOP_X)) / 8) as u16;
+        TEXT_COLS.min(fit)
+    }
 }
 
 /// House `write` on the glass. Serial is the transcript; this is the picture.
@@ -336,12 +434,7 @@ fn putc(b: u8, vga: bool) {
         let h = unsafe { core::ptr::addr_of!(FB).read().height };
         (h / 16) as u16
     };
-    let max_c = if vga {
-        COLS
-    } else {
-        let w = unsafe { core::ptr::addr_of!(FB).read().width };
-        ((w.saturating_sub(GOP_X)) / 8).min(80) as u16
-    };
+    let max_c = text_cols(vga);
     if !vga {
         erase_cursor(r, c);
     }
@@ -372,7 +465,7 @@ fn putc(b: u8, vga: bool) {
         }
     }
     if r >= max_r {
-        r = 16;
+        r = LOG_ROW;
         if r >= max_r {
             r = 0;
         }

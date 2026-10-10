@@ -291,12 +291,13 @@ echo "---- ingle-leaf ----"
 nasm -f bin -o spark/ingle.bin spark/ingle.asm
 nasm -f bin -o spark/leaf.bin spark/leaf.asm
 make spark/gleam.elf
+make spark/pane.elf
 make -C kernel ingle-bin
 nasm -f bin -o spark/bud.bin spark/bud.asm
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --kernel kernel/kernel.ingle.bin --out kindling-ingle-leaf.img \
   --spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
-  --spark bud=spark/bud.bin \
+  --spark bud=spark/bud.bin --spark pane=spark/pane.elf \
   --spark leaf=spark/leaf.bin --leaf LEAF=spark/LEAF.txt
 python3 scripts/check-ingle-leaf.py
 INGLE_LEAF_MEM=2G python3 scripts/check-ingle-leaf.py
@@ -477,13 +478,14 @@ nasm -f bin -o spark/ingle.bin spark/ingle.asm
 nasm -f bin -o spark/leaf.bin spark/leaf.asm
 nasm -f bin -o spark/keeper.bin spark/keeper.asm
 make spark/gleam.elf
+make spark/pane.elf
 nasm -f bin -o spark/bud.bin spark/bud.asm
 python3 -c "from pathlib import Path; Path('spark/hand.bin').write_bytes(bytes(32)); Path('spark/hands.bin').write_bytes(bytes(716)); Path('spark/twin.bin').write_bytes(bytes(716))"
 make steel >/dev/null
 python3 scripts/mkimg.py --loader ld/cerne-ld.bin \
   --kernel kernel/kernel.fw.bin --out kindling.img \
   --spark ingle=spark/ingle.bin --spark gleam=spark/gleam.elf \
-  --spark bud=spark/bud.bin \
+  --spark bud=spark/bud.bin --spark pane=spark/pane.elf \
   --spark leaf=spark/leaf.bin --spark keeper=spark/keeper.bin \
   --leaf LEAF=spark/LEAF.txt \
   --leaf hand=spark/hand.bin --leaf hands=spark/hands.bin \

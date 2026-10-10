@@ -3,7 +3,8 @@
 ; reads: Enter lights the fire, r recasts, q smoors. After the fire is
 ; lit, kindles gleam once (flush proof; a miss is quiet; a last word
 ; other than 0 fails), then bud once (grow proof; a miss is quiet;
-; a last word other than 0 fails), then leaf once, writes the light
+; a last word other than 0 fails), then pane once (tiny TUI; a miss is
+; quiet; a last word other than 0 fails), then leaf once, writes the light
 ; remains when that spark smoors, reads until q (smoor) or r (recast).
 ; A miss of keeper is quiet (Enter still lights the fire). A last word
 ; other than 0 does not light the fire.
@@ -103,6 +104,14 @@ start:
         test    rax, rax
         jnz     .fail                   ; last word != 0 — grow missed
 .nobud:
+        mov     rax, 5                  ; spawn "pane" — tiny TUI
+        lea     rdi, [rel panename]
+        int     0xE0
+        test    rax, rax
+        js      .nopane                 ; miss is quiet
+        test    rax, rax
+        jnz     .fail                   ; last word != 0 — pane missed
+.nopane:
         mov     rax, 5                  ; spawn "leaf"
         lea     rdi, [rel leafname]
         int     0xE0
@@ -148,6 +157,7 @@ home:   db      "the light remains", 10
 leafname: db    "leaf", 0
 gleamname: db   "gleam", 0
 budname: db     "bud", 0
+panename: db    "pane", 0
 handname: db    "hand", 0
 keepername: db  "keeper", 0
 key:    db      0

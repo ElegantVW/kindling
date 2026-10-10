@@ -150,8 +150,8 @@ def main() -> int:
         if addr == 0 or pitch == 0:
             print("FAIL efi-glass (gop addr/pitch zero)")
             return 1
-        # show() writes kindling at GOP row 16, x=8.
-        off = 16 * 16 * pitch + 8 * 4
+        # show() writes kindling at GOP row 2 (LOG_ROW), x=8.
+        off = 2 * 16 * pitch + 8 * 4
         deadline = time.time() + 2
         while time.time() < deadline and not Path(MON).exists():
             time.sleep(0.05)

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """EFI grow: ingle kindles bud after the fire; a 10-byte page becomes 600.
 
-Happy BOOTX64. CAIRN has ingle + gleam + bud + leaf. FAT32 at LBA 2048 is
+Happy BOOTX64. CAIRN has ingle + gleam + bud + pane + leaf. FAT32 at LBA 2048 is
 KINDLING `85C7-AA81` with LFN `page` still wax (10). WRITE(10) is refused
 on any other serial. Boot1 greps `the leaf grew` and the dirent is 600.
-Boot2 greps `kept` and never `the leaf grew`. Does not touch the live Databar.
+Boot2 greps `kept` and never `the leaf grew`. Pane takes a `q` before leaf.
+Does not touch the live Databar.
 """
 from __future__ import annotations
 
@@ -237,6 +238,14 @@ def boot_fire(code: Path, want: str) -> tuple[int, str]:
         if want not in t:
             sock.close()
             return 1, t
+        if "the pane is open" not in t:
+            serial = serial_has("the pane is open", 8)
+            t = serial.replace("\r", "")
+        if "the pane is open" not in t:
+            sock.close()
+            return 1, t
+        sock.sendall(b"sendkey q\n")
+        read_until(sock, "(qemu)", 2)
         if "the volume speaks" not in t:
             serial = serial_has("the volume speaks", 8)
             t = serial.replace("\r", "")
@@ -293,6 +302,7 @@ def main() -> int:
         cwd=ROOT,
     )
     subprocess.check_call(["make", "spark/gleam.elf"], cwd=ROOT)
+    subprocess.check_call(["make", "spark/pane.elf"], cwd=ROOT)
     cairn_blob = ROOT / "spark" / "cairn-grow.bin"
     subprocess.check_call(
         [
@@ -310,6 +320,8 @@ def main() -> int:
             f"gleam={ROOT / 'spark' / 'gleam.elf'}",
             "--spark",
             f"bud={ROOT / 'spark' / 'bud.bin'}",
+            "--spark",
+            f"pane={ROOT / 'spark' / 'pane.elf'}",
             "--spark",
             f"leaf={ROOT / 'spark' / 'leaf.bin'}",
             "--leaf",

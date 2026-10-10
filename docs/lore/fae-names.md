@@ -82,8 +82,9 @@ Do not propose these as new creature names. They are already working.
 | ember | G30 test spark: the live coal that stays while the wick burns. OE *æmerge*. Not Gleed (signer), not Hearth (QEMU + suite greeter) |
 | splanc | G31 test spark that does not catch. Irish *splanc* / flint-fire. `ud2`. Not Flint (signer) |
 | leaf | G33 spark: gleans `LEAF`, writes the page, reads until `q`. The Grove's leaves; not a signer |
-| ingle | G24 greeter spark, G34 desktop: greets an inked `hand`, kindles `gleam` then `bud` then `leaf`, writes `the light remains`, waits for `q`. Scots fireplace. Not Hearth |
+| ingle | G24 greeter spark, G34 desktop: greets an inked `hand`, kindles `gleam` then `bud` then `pane` then `leaf`, writes `the light remains`, waits for `q`. Scots fireplace. Not Hearth |
 | bud | G59 grow spark: inks FAT `page` 10→600, writes `the leaf grew`. English bud. Not a signer |
+| pane | G60 tiny TUI spark: flush form-feed owns the left glass; `q` shuts, `r` recasts. English pane (window glass). Not a signer |
 | keeper | G37 Setup Assistant / G40 hall. English *keeper*, not a signer. G41 glass answers (`the name is cut`, `the word sleeps in the twin`) are lines, not creatures |
 | hand | G37/G39 chosen name leaf (32 bytes). Not a spark |
 | hands | G39 sealed book (roster of 8). Not a spark. Not Hearth |

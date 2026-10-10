@@ -19,6 +19,8 @@
 /spark/*.bin
 /spark/gleam.elf
 /spark/gleam/target/
+/spark/pane.elf
+/spark/pane/target/
 /kindling.img
 /kindling-*.img
 /esp/

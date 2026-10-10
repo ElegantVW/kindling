@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Boot ingle+leaf, Enter, r on the page — prove recast from leaf."""
+"""Boot ingle+pane+leaf, Enter, r on the pane — prove recast from the TUI."""
 from __future__ import annotations
 
 import os
@@ -100,10 +100,10 @@ def main() -> int:
             return 1
         sock.sendall(b"sendkey ret\n")
         read_until(sock, "(qemu)", 2)
-        serial = serial_has("the volume speaks", 8)
+        serial = serial_has("the pane is open", 8)
         t = serial.replace("\r", "")
-        if "the fire is lit" not in t or "the volume speaks" not in t:
-            print("FAIL ingle-leaf-cast (no page)")
+        if "the fire is lit" not in t or "the pane is open" not in t:
+            print("FAIL ingle-leaf-cast (no pane)")
             print(serial[-400:])
             sock.close()
             return 1
