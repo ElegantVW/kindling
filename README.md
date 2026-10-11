@@ -1,6 +1,6 @@
 ![Kindling hero](assets/hero/kindling.svg)
 
-# fae-kernel — Kindling 🔥
+# Kindling 🔥
 
 x86_64 kernel we write. The pink suite is userspace. Creature name: **Kindling** — you light kindling, not the log. Lighting tools *are* the build tools (`make help`: flint, steel, tinder, hearth, kindle).
 
@@ -38,7 +38,7 @@ xorriso — only for the optional Limine ISO
 ```
 
 ```bash
-cd ~/fae-kernel
+cd ~/kindling
 make help           # how one lights Kindling
 make kindle         # OUR firmware + kernel. No Limine. No OVMF.
 make serial-uefi    # OVMF → our BOOTX64.EFI
