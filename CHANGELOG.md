@@ -1,5 +1,10 @@
 # fae-kernel changelog
 
+## v0.0.3 us3r (2026-10-11)
+
+- Repo renamed fae-kernel to kindling (crate + serial strings stay fae-kernel). Cargo 0.0.3.
+
+
 ## public-g61 (2026-10-10)
 
 - Public copy names house light G61: README (GitHub landing), Grove fire card, faeOS map. Kindling boots QEMU and iron. Linux ELF and `grant` stay later.
