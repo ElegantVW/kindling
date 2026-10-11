@@ -32,3 +32,5 @@
 /ovmf/
 .idea/
 /test-logs/
+__pycache__/
+*.pyc
